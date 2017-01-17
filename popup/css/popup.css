@@ -1,0 +1,246 @@
+ul, li {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.inline{
+    display:inline-block;
+    vertical-align: middle;
+}
+
+body {
+    font-family: "Lucida Grande", arial, sans-serif;
+    width: 250px;
+    padding: 0;
+    margin: 0;
+    -webkit-user-select: none;
+}
+
+.hidden {
+    display: none;
+}
+
+.icon {
+    cursor: pointer;
+    padding: 0 5px 0 5px;
+    height: 20px;
+}
+
+hr {
+    border: 0;
+    color: #555;
+    background-color: #DDD;
+    height: 1px;
+    margin: 5px;
+}
+
+#progress {
+    width: 0;
+    height: 2px;
+    background: #983923;
+    margin-bottom: 5px;
+}
+
+.popupContainer {
+    padding: 5px;
+    color: #434343;
+}
+
+.popupButton {
+    display: block;
+    text-decoration: none;
+    padding: 5px;
+    color: #333;
+    background: none;
+    font-size: 14px;
+}
+
+#webAppButtons a {
+    text-decoration: none;
+}
+
+.popupButton > span {
+    display: inline-block;
+    position: relative;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 175px;
+}
+
+.buttonIcon {
+    height: 20px;
+    width: auto;
+    margin-right: 10px;
+    position: relative;
+    top: 2px;
+}
+
+#midButtons {
+    margin-top: 5px;
+}
+
+.midButton {
+    display: table-cell;
+    width: 100px;
+    padding: 15px;
+}
+
+.midButton:hover {
+    background: #EEE;
+}
+
+#report {
+    text-align: center;
+}
+
+.opt {
+    margin: 3px;
+    height: 30px;
+    cursor: pointer;
+}
+
+*:focus {
+    /* outline: #983923 solid 1px; */
+    outline: none;
+    background-color: rgba(200,200,200,0.5);
+    /* #f0e1de; */
+}
+
+#configIcon * {
+    transition: 500ms;
+    cursor: pointer;
+}
+
+#configIcon:hover * {
+    fill: #983923;
+}
+
+#filtro {
+    width: 85%;
+    border: 0;
+    background: transparent;
+    padding: 5px;
+    outline: none;
+}
+
+#resultadoPesquisa {
+    overflow: auto;
+    max-height: 300px;
+}
+
+.tiny {
+    font-size: 9px;
+    min-width: 35px;
+}
+
+.centered {
+    text-align: center;
+}
+
+.clearBoth {
+    clear: both;
+}
+
+#postponedCountdown {
+    position:relative;
+    top: -52px;
+}
+
+#ementa {
+    cursor: default;
+    color: #666;
+}
+
+#ementaCont {
+    border-left: #ddd solid 1px;
+    padding-left: 5px;
+}
+
+#ementaCont > span {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 165px;
+    display: block;
+    overflow: hidden;
+}
+
+.hover:hover {
+    background-color: rgba(200,200,200,0.2);
+}
+
+.icons ul {
+    list-style: none;
+}
+
+.icons ul li {
+    float: left;
+    margin: 4px 2px 0 2px;
+    width: 76px;
+    height: 76px;
+    position: relative;
+}
+
+.icons ul li a.inner {
+    display: block;
+    width: 76px;
+    height: 76px;
+    cursor: pointer;
+    transition: background-color 0.5s;
+}
+
+.icons ul li a.inner:hover {
+    background-color: #EEE;
+}
+
+.icons ul li a.inner * {
+    color: #666;
+    fill: #666;
+    transition-delay: 0.5s;
+    transition: fill 0.7s;
+}
+
+.icons ul li a.inner:hover * {
+    fill: #983923;
+    color: #983923;
+}
+
+
+#iconEmenta, #controladoresEmenta {
+    width: 20px;
+    line-height: 13px;
+    text-align: center;
+}
+
+#controladoresEmenta .inactive path {
+    fill: #CCC;
+}
+
+.textoCon {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255,255,255,0.9);
+    text-align: center;
+    cursor: pointer;
+    line-height: 76px;
+    font-size: 25px;
+    color: #777;
+    transition-duration: 0.5s;
+}
+
+.textoCon:hover {
+    color: #983923;
+    background-color: #EEE;
+}
+
+#silentModeOptions {
+    text-align: center;
+    padding: 5px;
+}
+
+.pointer {
+    cursor: pointer;
+}

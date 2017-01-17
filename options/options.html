@@ -1,0 +1,176 @@
+﻿<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Definições</title>
+    <link rel="stylesheet" type="text/css" href="css/options.css" />
+    <script src="/libs/jquery-2.1.1.min.js" charset="utf-8"></script>
+    <script src="/libs/chrome-promise.js" charset="utf-8"></script>
+    <script src="/utils.js" charset="utf-8"></script>
+    <script src="/topics.js" charset="utf-8"></script>
+    <script src="/notifications.js" charset="utf-8"></script>
+    <script src="/tabs.js" charset="utf-8"></script>
+    <script src="options.js" charset="utf-8"></script>
+</head>
+
+<body>
+    <div class="wraper">
+        <div id="title">
+            <img class="icon" width="150" src="../img/config.svg" />Tópicos Por Ler<span id="currentVersion"></span>
+        </div>
+        <form id="opcoes">
+            <table width="500" cellpadding="7">
+                <tr>
+                    <td colspan="2" class="header">Tópicos</td>
+                </tr>
+                <tr>
+                    <td align="right">
+                        Interesse
+                    </td>
+                    <td>
+                        <select id="unreadOption">
+                            <option value="unread;all;start=0">All Unread</option>
+                            <option value="unreadreplies">Unread Replies</option>
+                            <option value="unread">Unread</option>
+                        </select>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td align="right">
+                        Exclusões
+                        <br>
+                        <span>(ID/linha)</span>
+                    </td>
+                    <td>
+                        <textarea id="excludedTopics"></textarea>
+                    </td>
+                </tr>
+
+
+                <tr>
+                    <td colspan="2" class="header">Separadores</td>
+                </tr>
+
+                <tr>
+                    <td align="right">
+                        Abrir no Máximo
+                    </td>
+                    <td>
+                        <input type="number" id="maxLinksOpen" max="99" min="1" required />
+                    </td>
+                </tr>
+
+                <tr>
+                    <td align="right">
+                        Dar Foco a Novos
+                    </td>
+                    <td>
+                        <input id="setFocusOnFirst" type="checkbox" />
+                    </td>
+                </tr>
+
+                <tr>
+                    <td colspan="2" class="header">Notificações</td>
+                </tr>
+
+                <tr>
+                    <td align="right">
+                        Mostrar
+                    </td>
+                    <td>
+                        <input id="notificationsEnabled" type="checkbox" />
+                    </td>
+                </tr>
+
+                <tr>
+                    <td align="right">
+                        Volume Audio
+                    </td>
+                    <td>
+                        <input type="range" id="audioVolume" />
+                    </td>
+                </tr>
+
+                <tr>
+                    <td align="right">
+                        Não Incomodar
+                    </td>
+                    <td>
+                        <input type="number" id="muteHourPeriod" min="1" max="99" required /> <span>(horas)</span>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td colspan="2" class="header">Outras</td>
+                </tr>
+
+                <tr>
+                    <td align="right">
+                        Pré-Visualização de Imagens
+                    </td>
+                    <td>
+                        <input type="checkbox" id="displayImages" />
+                    </td>
+                </tr>
+
+                <tr title="Número de milissegundos a esperar até abrir novos tópicos (0 = não esperar // +inf = não abrir)">
+                    <td align="right">
+                        Sensibilidade Popup
+                    </td>
+                    <td>
+                        <input type="number" id="popupSensibility" min="0" max="9999" required /> <span>(ms)</span>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td align="right">
+                        Limpar Dados em Logout
+                    </td>
+                    <td>
+                        <input id="cleanDataOnLogout" type="checkbox" />
+                    </td>
+                </tr>
+
+                <tr>
+                    <td colspan="2" class="header">Teclas de Atalho</td>
+                </tr>
+
+                <tr>
+                    <td align="right">
+                        Abrir Tópicos Por Ler
+                    </td>
+                    <td id="open-unread-topics"></td>
+                </tr>
+                <tr>
+                    <td align="right">
+                        Abrir Fórum
+                    </td>
+                    <td id="open-forum"></td>
+                </tr>
+
+                <tr>
+                    <td colspan="2" align="center">
+                        <input type="submit" id="save" value="Gravar" />
+                    </td>
+                </tr>
+
+            </table>
+        </form>
+    </div>
+
+    <div id="mensagem" class="hidden">
+        <div class="msg">
+            <div id="msgTxt"></div>
+            <div class="restartMsg">
+                <a id="restartExtensionLink" href="#">
+                    <span>Restart em <span id="countdownTime"></span> segundos.</span>
+                </a>
+            </div>
+        </div>
+        <div class="bg"></div>
+    </div>
+
+</body>
+
+</html>

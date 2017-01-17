@@ -1,0 +1,215 @@
+#ementa {
+    position: absolute;
+    bottom: 0px;
+    width: 100%;
+}
+
+#ant, #dia, #seg {
+    float: left;
+    -webkit-user-select: none;
+}
+
+.head {
+    display: table;
+}
+
+.head, #almoco, #jantar {
+    margin: auto;
+    text-align: center;
+    padding: 10px;
+    margin-top: 2px;
+}
+
+#almoco, #jantar {
+    background: rgba(86,16,23,0.3);
+}
+
+#almoco {
+    clear: both;
+}
+
+#dia {
+    width: 150px;
+    text-align: center;
+}
+
+.botao {
+    cursor: pointer;
+    -webkit-user-select: none;
+}
+
+#topicosPLS {
+    position: relative;
+    top: 50px;
+    right: 50px;
+    height: 50px;
+    width: 50px;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><style type='text/css'> .st0{fill:#902828;} .st1{fill:#ffffff; opacity: 0.7;}</style><rect class='st1' width='100' height='100'/><rect x='54.2' y='71.9' class='st0' width='9.4' height='9.4'/><path class='st0' d='M0,0v100h100V0H0z M27.2,16.8h46.3v46.3H27.2V16.8z M31.6,83.6H17.6V69.6h13.9V83.6z M48.7,83.6H34.8V69.6 h13.9V83.6z M65.9,83.6H51.9V69.6h13.9V83.6z M83,83.6H69.1V69.6H83V83.6z'/><rect x='19.9' y='71.9' class='st0' width='9.4' height='9.4'/><rect x='32.4' y='22.1' class='st0' width='35.8' height='35.8'/><rect x='37.1' y='71.9' class='st0' width='9.4' height='9.4'/><rect x='71.4' y='71.9' class='st0' width='9.4' height='9.4'/></svg>");
+    background-size: 50px 50px;
+    /*background: white;*/
+    cursor: pointer;
+    -webkit-user-select: none;
+}
+
+#menuTPLS {
+    color: white;
+    position: absolute;
+    top: 0;
+    border-left: 1px solid #7a1e28;
+    width: 100%;
+    height: 100%;
+}
+
+#menuTPLS a {
+    color: white;
+    text-decoration: none;
+}
+
+#menuTPLS #filtro {
+    position: absolute;
+    width: 100%;
+    background: transparent;
+    color: white;
+    top: 15px;
+    border: 0;
+    outline: none;
+}
+
+#TPLS {
+    color: white;
+    position: fixed;
+    bottom: 0px;
+    right: -250px;
+    height: 100%;
+    z-index: 999999;
+    width: 250px;
+    height: 100%;
+    background:rgba(132,42,36,0.95);
+}
+
+#openSelected {
+    width: 200px;
+    background-color: #561017;
+}
+
+#refreshTopics {
+    width: 50px;
+    background-color: #49080e;
+}
+
+#actionLine * {
+    display: inline-block;
+    text-align: center;
+    overflow: hidden;
+    transition: 300ms;
+}
+
+#actionLine {
+    margin-top: 50px;
+    width: 100%;
+    line-height: 50px;
+}
+
+#actionLine *:hover {
+    background-color: #6c1616;
+}
+
+#menuTPLS ul {
+    padding: 0;
+}
+
+ul#topicosPorLer::-webkit-scrollbar, ul#resultadoPesquisa::-webkit-scrollbar { 
+    display: none; 
+}
+
+ul#topicosPorLer, ul#resultadoPesquisa {
+    overflow-y: auto;
+    overflow-x: hidden;
+    max-height: 40%;
+}
+
+#menuTPLS li {
+    list-style: none;
+    padding: 0;
+    position: relative;
+    padding: 10px;
+    margin-bottom: 2px;
+    background: rgba(86,16,23,0.3);
+    width: 230px;
+    cursor: pointer;
+    transition: 300ms ease-in-out;
+}
+
+#menuTPLS li:hover {
+    background: rgba(86,16,23,0.6);
+}
+
+#menuTPLS :focus {
+    color: rgba(255,255,255,0.5);
+    outline: none;
+}
+
+ul#topicosPorLer li.blacklisted {
+    opacity: 0.5;
+}
+
+ul#topicosPorLer li.active {
+    background: rgba(86,16,23,0.8);
+    opacity: 1;
+}
+
+ul#topicosPorLer li .cont {
+    width: 200px;
+    position: relative;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+ul#topicosPorLer li span {
+    color: #CCC;
+    font-size: 10px;
+    font-style: italic;
+}
+
+ul#topicosPorLer::-webkit-scrollbar {
+    width: 5px;
+}
+
+/* Track */
+ul#topicosPorLer::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3); 
+    -webkit-border-radius: 5px;
+    border-radius: 5px;
+}
+
+/* Handle */
+ul#topicosPorLer::-webkit-scrollbar-thumb {
+    -webkit-border-radius: 5px;
+    border-radius: 5px;
+    background: rgba(255,255,255,0.5); 
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5); 
+}
+
+#reportSelecionados {
+    padding: 10px 0 10px 0;
+    background: rgba(86,16,23,0.5);
+    width: 100%;
+    text-align: center;
+}
+
+
+.followBox {
+    position: absolute;
+    border: 5px rgba(137, 33, 45, 0.95) solid;
+    z-index: 10;
+    display: none;
+    -moz-box-shadow: 0 0 15px rgba(137, 33, 45, 0.95);
+    -webkit-box-shadow: 0 0 15px rgba(137, 33, 45, 0.95);
+    box-shadow: 0 0 15px rgba(137, 33, 45, 0.95);
+}
+
+.followBox img, .followBox video {
+    max-width: 500px;
+    max-height: 500px;
+}

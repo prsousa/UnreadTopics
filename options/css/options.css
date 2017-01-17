@@ -1,0 +1,91 @@
+body {
+    font-family: "Lucida Grande", arial, sans-serif;
+    padding: 0;
+    margin: 0;
+    color: #444;
+    -webkit-user-select: none;
+}
+
+.wraper {
+    width: 550px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+form {
+    margin: 0;
+}
+
+table {
+    margin: 0 auto;
+}
+
+textarea {
+    width: 100px;
+    height: 70px;
+}
+
+tr {
+    background: whitesmoke;
+}
+tr.odd{
+    background: #EFEFEF;
+}
+
+#title {
+    font-size: 30px;
+    background: #963318;
+    color: white;
+}
+#title .icon {
+    vertical-align:middle;
+}
+
+.header {
+    background: #555; /* 732d1c */
+    color: white;
+    text-align: center;
+    padding: 15px;
+    border-top: solid 5px #661E0B;
+}
+
+span {
+    font-size: 10px;
+}
+
+#mensagem .msg {
+    text-align: center;
+    padding-top: 50px;
+    padding-bottom: 50px;
+    font-size: 50px;
+    vertical-align: middle;
+    line-height: 100px;
+    color: white;
+
+    width: 100%;
+    height: 150px;
+    position: fixed;
+    background: green;
+    top: 50%;
+    margin-top: -150px;
+    z-index: 10;
+}
+
+#mensagem .bg{
+    background: rgba(0,0,0,0.5);
+    height: 100%;
+    left: 0;
+    position:fixed;
+    top: 0;
+    width: 100%;
+    z-index: 9;
+}
+
+#mensagem .restartMsg * {
+    font-size: 15px;
+    color: white;
+}
+
+.hidden {
+    display: none;
+}
