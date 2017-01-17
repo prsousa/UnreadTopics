@@ -20,10 +20,8 @@ GCMManager.pushRegistrationId = function (userId, registrationId) {
 }
 
 GCMManager.register = function (userId, fcmServerId) {
-    return chromep.gcm.unregister().then(() => {
-        GCMManager.registered = false;
-        return chromep.gcm.register([fcmServerId]).then(registrationId => {
-            return GCMManager.pushRegistrationId(userId, registrationId);
-        });
+    GCMManager.registered = false;
+    return chromep.gcm.register([fcmServerId]).then(registrationId => {
+        return GCMManager.pushRegistrationId(userId, registrationId);
     });
 }

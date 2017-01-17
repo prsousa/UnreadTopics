@@ -221,6 +221,8 @@ chrome.commands.onCommand.addListener(function (command) {
 
 // Receives signal on extension installation
 chrome.runtime.onInstalled.addListener(function (details) {
+    let newVersion = chrome.runtime.getManifest().version;
+
     if (details.previousVersion < "3.0.0") {
         // Migrate Data
         let oldOther = {
@@ -253,11 +255,11 @@ chrome.runtime.onInstalled.addListener(function (details) {
 
         localStorage.clear();
         loadData();
+
+        notifs.notifyUpdate('Clica aqui para as opções', newVersion);
     }
 
-    let newVersion = chrome.runtime.getManifest().version;
     if (details.previousVersion < newVersion) {
-        notifs.notifyUpdate('Clica aqui para as opções', newVersion);
         console.log(`Updated from ${details.previousVersion} to ${newVersion}`);
     }
 });
