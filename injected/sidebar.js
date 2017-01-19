@@ -125,11 +125,26 @@ $("#topicosPLS").on("mouseover", function (e) {
     }
 });
 
-//
+
+let closing = false;
+
+$(document).mousemove(function (e) {
+    if (closing) {
+        let mouseX = e.pageX;
+        let sidebarX = $("#TPLS").offset().left;
+        let mouseXDistance = sidebarX - mouseX;
+        const threshold = Math.min($(window).width() * 0.1, 200);
+
+        if (mouseXDistance > threshold) {
+            closeSidepage();
+        }
+    }
+});
+
 $("#TPLS").on("mouseleave", function (e) {
     e.preventDefault();
-    closeSidepage();
-}); // end close button event handler
+    closing = true;
+});
 
 
 function openSidepage(open) {
@@ -145,6 +160,7 @@ function openSidepage(open) {
 
 function closeSidepage() {
     // return;
+    closing = false;
     $('#TPLS').animate({
         right: '-250px'
     }, 300, 'easeOutQuint', function () {
