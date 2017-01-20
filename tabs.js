@@ -1,8 +1,18 @@
 "use strict"
 
 var TabsManager = function () {
-    this.setFocusOnFirst = true;
-    this.maxLinksOpen = 10;
+    this.prefs = {
+        setFocusOnFirst: true,
+        maxLinksOpen: 10
+    };
+}
+
+TabsManager.prototype.save = function () {
+    return Utils.saveRemotely(this.prefs);
+}
+
+TabsManager.prototype.load = function () {
+    return Utils.loadRemotely(this.prefs);
 }
 
 TabsManager.prototype.closeTab = function (tabId) {
@@ -17,15 +27,15 @@ TabsManager.prototype.openLinks = function (links) {
         if (tabs && tabs.length > 0) {
             var windowId = tabs[0].windowId;
 
-            for (let i = 0; i < Math.min(_this.maxLinksOpen, links.length); i++) {
+            for (let i = 0; i < Math.min(_this.prefs.maxLinksOpen, links.length); i++) {
                 setTimeout(() => {
-                    chrome.tabs.create({ windowId: windowId, url: links[i], active: (i == 0 && _this.setFocusOnFirst) });
+                    chrome.tabs.create({ windowId: windowId, url: links[i], active: (i == 0 && _this.prefs.setFocusOnFirst) });
                 }, i * 500);
             };
 
-            chrome.windows.update(windowId, { focused: _this.setFocusOnFirst });
+            chrome.windows.update(windowId, { focused: _this.prefs.setFocusOnFirst });
         } else if (tabs) {
-            chrome.windows.create({ url: links, focused: _this.setFocusOnFirst });
+            chrome.windows.create({ url: links, focused: _this.prefs.setFocusOnFirst });
         }
     });
 }

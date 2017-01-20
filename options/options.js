@@ -2,73 +2,69 @@ const chromep = new ChromePromise();
 let countdownClock;
 
 function saveOptions() {
-    let newTopics = {
+    let newTopicsPrefs = {
         unreadOption: $("#unreadOption").val(),
         excludedTopics: $("#excludedTopics").val().trim().split("\n").filter(elem => {
             return elem.length > 0;
         })
     };
 
-    let newTabs = {
-        maxLinksOpen: parseInt($("#maxLinksOpen").val()),
-        setFocusOnFirst: $("#setFocusOnFirst").is(':checked')
+    let newTabsPrefs = {
+        setFocusOnFirst: $("#setFocusOnFirst").is(':checked'),
+        maxLinksOpen: parseInt($("#maxLinksOpen").val())
     }
 
-    let newNotifs = {
+    let newNotifsPrefs = {
         enabled: $("#notificationsEnabled").is(':checked'),
         audioVolume: $("#audioVolume").val() / 100.0,
         muteHourPeriod: parseInt($("#muteHourPeriod").val())
     }
 
-    let newOther = {
+    let newOtherPrefs = {
         displayImages: $("#displayImages").is(':checked'),
         popupSensibility: parseInt($("#popupSensibility").val()),
         cleanDataOnLogout: $("#cleanDataOnLogout").is(':checked')
     }
 
-    let promises = [];
-    promises.push(Utils.save("topics", newTopics));
-    promises.push(Utils.save("tabs", newTabs));
-    promises.push(Utils.save("notifs", newNotifs));
-    promises.push(Utils.save("other", newOther));
-
-    Promise.all(promises).then(results => {
+    Promise.all([
+        Utils.saveRemotely(newTopicsPrefs),
+        Utils.saveRemotely(newTabsPrefs),
+        Utils.saveRemotely(newNotifsPrefs),
+        Utils.saveRemotely(newOtherPrefs)
+    ]).then(results => {
         displayMensagem("Opções Gravadas");
     });
 
-    console.log(newTopics, newTabs, newNotifs, newOther);
+    console.log(newTopicsPrefs, newTabsPrefs, newNotifsPrefs, newOtherPrefs);
 }
 
 function restoreOptions() {
     let topics = new TopicsManager();
     let notifs = new NotificationsManager();
     let tabs = new TabsManager();
-    var other = {
-        popupSensibility: 500,
-        displayImages: true,
-        cleanDataOnLogout: true
-    };
+    let other = new GeneralManager();
 
-    let promises = [];
-    promises.push(Utils.load(topics, "topics"));
-    promises.push(Utils.load(tabs, "tabs"));
-    promises.push(Utils.load(notifs, "notifs"));
-    promises.push(Utils.load(other, "other"));
+    let promises = [
+        topics.load(),
+        tabs.load(),
+        notifs.load(),
+        other.load()
+    ];
 
     Promise.all(promises).then(results => {
-        $("#unreadOption").val(topics.unreadOption);
-        $("#excludedTopics").val(topics.excludedTopics.join('\n'));
+        $("#unreadOption").val(topics.prefs.unreadOption);
+        $("#excludedTopics").val(topics.prefs.excludedTopics.join('\n'));
 
-        $("#maxLinksOpen").val(tabs.maxLinksOpen);
-        $("#setFocusOnFirst").prop('checked', tabs.setFocusOnFirst);
+        $("#maxLinksOpen").val(tabs.prefs.maxLinksOpen);
+        $("#setFocusOnFirst").prop('checked', tabs.prefs.setFocusOnFirst);
 
-        $("#notificationsEnabled").prop('checked', notifs.enabled);
-        $("#audioVolume").val(notifs.audioVolume * 100);
-        $("#muteHourPeriod").val(notifs.muteHourPeriod);
+        $("#notificationsEnabled").prop('checked', notifs.prefs.enabled);
+        $("#audioVolume").val(notifs.prefs.audioVolume * 100);
+        $("#muteHourPeriod").val(notifs.prefs.muteHourPeriod);
 
-        $("#displayImages").prop('checked', other.displayImages);
-        $("#popupSensibility").val(other.popupSensibility);
-        $("#cleanDataOnLogout").prop('checked', other.cleanDataOnLogout);
+        $("#displayImages").prop('checked', other.prefs.displayImages);
+        $("#popupSensibility").val(other.prefs.popupSensibility);
+        $("#cleanDataOnLogout").prop('checked', other.prefs.cleanDataOnLogout);
     });
 }
 

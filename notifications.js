@@ -1,48 +1,68 @@
 "use strict"
 
 var NotificationsManager = function () {
-    this.enabled = true;
-    this.muteWhileHere = false;
-    this.currentIP = "";
-    this.muteHourPeriod = 2;
-    this.muteUntil = 0;
-    this.audioVolume = 0.5;
+    this.prefs = {
+        enabled: true,
+        audioVolume: 0.5,
+        muteHourPeriod: 2
+    };
+
+    this.db = {
+        currentIP: "",
+        muteWhileHere: false,
+        muteUntil: 0
+    }
+}
+
+NotificationsManager.prototype.save = function () {
+    return Promise.all([
+        Utils.saveLocally(this.db),
+        Utils.saveRemotely(this.prefs)
+    ]);
+}
+
+NotificationsManager.prototype.load = function () {
+    return Promise.all([
+        Utils.loadLocally(this.db),
+        Utils.loadRemotely(this.prefs)
+    ]);
 }
 
 NotificationsManager.prototype.isCurrentlyBlocked = function () {
-    return !this.enabled || this.muteWhileHere || this.muteUntil - new Date().getTime() > 0;
+    return !this.prefs.enabled || this.db.muteWhileHere || this.db.muteUntil - new Date().getTime() > 0;
 }
 
 NotificationsManager.prototype.getCurrentState = function () {
     return {
         currentlyBlocked: this.isCurrentlyBlocked(),
-        enabled: this.enabled,
-        muttedUntil: this.muteUntil,
-        audioVolume: this.audioVolume
+        enabled: this.prefs.enabled,
+        audioVolume: this.prefs.audioVolume,
+        muttedUntil: this.db.muteUntil
     }
 }
 
 NotificationsManager.prototype.postponeHourPeriod = function () {
-    this.muteUntil = new Date().getTime() + this.muteHourPeriod * 60 * 60 * 1000;
+    this.db.muteUntil = new Date().getTime() + this.prefs.muteHourPeriod * 60 * 60 * 1000;
 }
 
 NotificationsManager.prototype.setEnabled = function (enabled) {
-    this.enabled = enabled;
-    this.muteUntil = 0;
+    this.prefs.enabled = enabled;
+    this.db.muteUntil = 0;
 }
 
 NotificationsManager.prototype.playSound = function () {
     var audio = new Audio('/audio/all-eyes-on-me.ogg');
-    audio.volume = this.audioVolume;
+    audio.volume = this.prefs.audioVolume;
     audio.play();
 }
 
 NotificationsManager.prototype.notifyTopics = function (items) {
     if (this.isCurrentlyBlocked()) return false;
+    if (!items || items.length === 0) return false;
 
     this.playSound();
 
-    var postponePeriod = { title: "Não incomodar (" + this.muteHourPeriod + "h)", iconUrl: "/img/postpone.svg" };
+    var postponePeriod = { title: "Não incomodar (" + this.prefs.muteHourPeriod + "h)", iconUrl: "/img/postpone.svg" };
     // var naoIncomodarUMBtn = { title: "Não incomodar aqui", iconUrl: "img/UM.png" };
     var buttonsToDisplay = [postponePeriod];
 

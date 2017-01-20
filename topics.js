@@ -1,83 +1,101 @@
 "use strict"
 
 var TopicsManager = TopicsManager || function () {
-    this._notifierOnTopicsChange = function () { };
-    this._notifierOnLoadingChange = function () { };
-    this._notifierOnLoginStatusChange = function (newStatus) { };
-    this._lastUpdate = new Date(0).getTime();
-    this._isLoading = false;
+    this.notifierOnTopicsChange = function () { };
+    this.notifierOnLoadingChange = function () { };
+    this.notifierOnLoginStatusChange = function (newStatus) { };
+    this.lastUpdate = new Date(0).getTime();
+    this.isLoading = false;
 
-    this.forumURL = "http://lei-uminho.com/forum/";
-    this.unreadOption = "unread;all;start=0";
-    this.userId = 0;
+    this.prefs = {
+        forumURL: "http://lei-uminho.com/forum/",
+        unreadOption: "unread;all;start=0",
+        excludedTopics: []
+    };
 
-    this.topicsDictionary = {};
-    this.boardsDictionary = {};
-    this.unreadTopics = [];
-    this.unreadLinks = {};
-    this.lastPosters = {};
-    this.excludedTopics = [];
+    this.db = {
+        userId: 0,
+        topicsDictionary: {},
+        boardsDictionary: {},
+        unreadTopics: [],
+        unreadLinks: {},
+        lastPosters: {}
+    }
+}
+
+TopicsManager.prototype.save = function () {
+    return Promise.all([
+        Utils.saveLocally(this.db),
+        Utils.saveRemotely(this.prefs)
+    ]);
+}
+
+TopicsManager.prototype.load = function () {
+    return Promise.all([
+        Utils.loadLocally(this.db),
+        Utils.loadRemotely(this.prefs)
+    ]);
 }
 
 TopicsManager.prototype.setUnreadTopicsChangeListener = function (func) {
-    this._notifierOnTopicsChange = func;
+    this.notifierOnTopicsChange = func;
 }
 
 TopicsManager.prototype.setLoginStatusChangeListener = function (func) {
-    this._notifierOnLoginStatusChange = func;
+    this.notifierOnLoginStatusChange = func;
 }
 
 TopicsManager.prototype.setOnLoadingChangeListener = function (func) {
-    this._notifierOnLoadingChange = func;
+    this.notifierOnLoadingChange = func;
 }
 
 TopicsManager.prototype.isLoggedIn = function () {
-    return this.userId > 0;
+    return this.db.userId > 0;
 }
 
 TopicsManager.prototype.clear = function () {
-    this._lastUpdate = 0;
-    this.topicsDictionary = {};
-    this.boardsDictionary = {};
-    this.unreadTopics = [];
-    this.unreadLinks = {};
-    this.lastPosters = {};
+    this.lastUpdate = 0;
+    this.db.topicsDictionary = {};
+    this.db.boardsDictionary = {};
+    this.db.unreadTopics = [];
+    this.db.unreadLinks = {};
+    this.db.lastPosters = {};
 }
 
 TopicsManager.prototype.setLoading = function (loadingState) {
-    if (this._isLoading !== loadingState) {
-        this._isLoading = loadingState;
-        this._notifierOnLoadingChange();
+    if (this.isLoading !== loadingState) {
+        this.isLoading = loadingState;
+        this.notifierOnLoadingChange();
     }
 }
 
 TopicsManager.prototype.isOutdated = function (minutes) {
-    return ((new Date() - new Date(this._lastUpdate)) / 1000 / 60) > minutes;
+    return ((new Date() - new Date(this.lastUpdate)) / 1000 / 60) > minutes;
 }
 
 TopicsManager.prototype.setUserId = function (userId) {
-    if (this.userId != userId) {
-        this.userId = userId;
-        this._notifierOnLoginStatusChange(userId > 0);
+    if (this.db.userId != userId) {
+        this.db.userId = userId;
+        this.notifierOnLoginStatusChange(userId > 0);
     }
 }
 
 TopicsManager.prototype.setTopicRead = function (topicId) {
-    let unreadPos = this.unreadTopics.indexOf(topicId);
+    let unreadPos = this.db.unreadTopics.indexOf(topicId);
     if (unreadPos >= 0) {
-        this.unreadTopics.splice(unreadPos, 1);
-        this._notifierOnTopicsChange();
+        this.db.unreadTopics.splice(unreadPos, 1);
+        this.notifierOnTopicsChange();
     }
 }
 
 TopicsManager.prototype.getLocalUnreadTopics = function () {
     var res = [];
 
-    for (let topicId of this.unreadTopics) {
+    for (let topicId of this.db.unreadTopics) {
         res.push({
-            name: this.topicsDictionary[topicId],
-            link: this.unreadLinks[topicId],
-            lastPoster: this.lastPosters[topicId]
+            name: this.db.topicsDictionary[topicId],
+            link: this.db.unreadLinks[topicId],
+            lastPoster: this.db.lastPosters[topicId]
         });
     }
 
@@ -85,23 +103,23 @@ TopicsManager.prototype.getLocalUnreadTopics = function () {
 }
 
 TopicsManager.prototype.knownBoard = function (boardId) {
-    return this.boardsDictionary[boardId] !== undefined;
+    return this.db.boardsDictionary[boardId] !== undefined;
 }
 
 TopicsManager.prototype.isExcluded = function (topicId) {
-    return this.excludedTopics.indexOf(topicId) !== -1;
+    return this.prefs.excludedTopics.indexOf(topicId) !== -1;
 }
 
 TopicsManager.prototype.searchTopicsByName = function (searchText) {
     let res = [];
     searchText = searchText.toLowerCase().removeAccents();
 
-    Object.keys(this.topicsDictionary).forEach(topicId => {
-        let topicName = this.topicsDictionary[topicId].toLowerCase().removeAccents();
+    Object.keys(this.db.topicsDictionary).forEach(topicId => {
+        let topicName = this.db.topicsDictionary[topicId].toLowerCase().removeAccents();
         if (topicName.indexOf(searchText) !== -1) {
             res.push({
                 id: topicId,
-                name: this.topicsDictionary[topicId]
+                name: this.db.topicsDictionary[topicId]
             });
         }
     });
@@ -112,19 +130,19 @@ TopicsManager.prototype.searchTopicsByName = function (searchText) {
 TopicsManager.prototype.receiveValidPost = function (postDetails) {
     let newUnreadTopics = false;
 
-    if (this.knownBoard(postDetails.board) && postDetails.posterId != this.userId && !this.isExcluded(postDetails.topic)) {
-        if (postDetails.currTopic == 0 || this.topicsDictionary[postDetails.topic] === undefined) {
+    if (this.knownBoard(postDetails.board) && postDetails.posterId != this.db.userId && !this.isExcluded(postDetails.topic)) {
+        if (postDetails.currTopic == 0 || this.db.topicsDictionary[postDetails.topic] === undefined) {
             // new topic OR unknown topic name
-            this.topicsDictionary[postDetails.topic] = postDetails.subject.trim().replace(/^Re: /gi, "");
+            this.db.topicsDictionary[postDetails.topic] = postDetails.subject.trim().replace(/^Re: /gi, "");
         }
 
-        this.lastPosters[postDetails.topic] = postDetails.posterName;
+        this.db.lastPosters[postDetails.topic] = postDetails.posterName;
 
-        if (this.unreadTopics.indexOf(postDetails.topic) === -1) {
-            this.unreadTopics.push(postDetails.topic);
+        if (this.db.unreadTopics.indexOf(postDetails.topic) === -1) {
+            this.db.unreadTopics.push(postDetails.topic);
             newUnreadTopics = true;
 
-            this._notifierOnTopicsChange();
+            this.notifierOnTopicsChange();
         }
     }
 
@@ -135,7 +153,7 @@ TopicsManager.prototype.fetchUnread = function () {
     let _this = this;
     this.setLoading(true);
     return Utils.ajax({
-        url: this.forumURL + "?action=" + this.unreadOption,
+        url: this.prefs.forumURL + "?action=" + this.prefs.unreadOption,
         timeout: 10 * 1000 // 10 second timeout
     }).then(function (htmlData) {
         if (htmlData.indexOf("login") === -1 && htmlData.indexOf("logout") === -1) {
@@ -149,25 +167,25 @@ TopicsManager.prototype.fetchUnread = function () {
             return Promise.reject("error::loggedout");
         }
 
-        _this._lastUpdate = new Date().getTime();
+        _this.lastUpdate = new Date().getTime();
         _this.setUserId(userId);
 
         let newUnreadTopics = false;
 
         let unreadLinks = extractUnreadLinks(htmlData);
-        _this.excludedTopics.forEach(excludedTopic => {
+        _this.prefs.excludedTopics.forEach(excludedTopic => {
             delete unreadLinks[excludedTopic]
         });
-        
-        Utils.extend(_this.unreadLinks, unreadLinks);
-        Utils.extend(_this.lastPosters, extractLastPosters(htmlData));
-        Utils.extend(_this.topicsDictionary, extractTopicNames(htmlData));
-        Utils.extend(_this.boardsDictionary, extractBoardNames(htmlData));
 
-        newUnreadTopics = !Utils.containsValues(_this.unreadTopics, Object.keys(unreadLinks));
+        Utils.extend(_this.db.unreadLinks, unreadLinks);
+        Utils.extend(_this.db.lastPosters, extractLastPosters(htmlData));
+        Utils.extend(_this.db.topicsDictionary, extractTopicNames(htmlData));
+        Utils.extend(_this.db.boardsDictionary, extractBoardNames(htmlData));
 
-        _this.unreadTopics = Object.keys(unreadLinks).reverse();
-        _this._notifierOnTopicsChange();
+        newUnreadTopics = !Utils.containsValues(_this.db.unreadTopics, Object.keys(unreadLinks));
+
+        _this.db.unreadTopics = Object.keys(unreadLinks).reverse();
+        _this.notifierOnTopicsChange();
 
         return newUnreadTopics;
     }).then(param => {
@@ -180,8 +198,8 @@ TopicsManager.prototype.fetchUnread = function () {
 }
 
 TopicsManager.prototype.seedFromHTML = function (htmlData) {
-    Utils.extend(this.topicsDictionary, extractTopicNames(htmlData));
-    Utils.extend(this.boardsDictionary, extractBoardNames(htmlData));
+    Utils.extend(this.db.topicsDictionary, extractTopicNames(htmlData));
+    Utils.extend(this.db.boardsDictionary, extractBoardNames(htmlData));
     try {
         this.setUserId(extractUserId(htmlData));
     } catch (e) { };
