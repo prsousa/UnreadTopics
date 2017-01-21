@@ -152,49 +152,50 @@ TopicsManager.prototype.receiveValidPost = function (postDetails) {
 TopicsManager.prototype.fetchUnread = function () {
     let _this = this;
     this.setLoading(true);
-    return Utils.ajax({
+    
+    let fetchPromise = Utils.ajax({
         url: this.prefs.forumURL + "?action=" + this.prefs.unreadOption,
         timeout: 10 * 1000 // 10 second timeout
     }).then(function (htmlData) {
         if (htmlData.indexOf("login") === -1 && htmlData.indexOf("logout") === -1) {
-            return Promise.reject("error::page");
+            return Promise.reject("server");
         }
 
         let userId = extractUserId(htmlData)
 
         if (userId === 0) {
             _this.setUserId(userId);
-            return Promise.reject("error::loggedout");
+            return Promise.reject("loggedout");
         }
 
         _this.lastUpdate = new Date().getTime();
         _this.setUserId(userId);
 
-        let newUnreadTopics = false;
-
         let unreadLinks = extractUnreadLinks(htmlData);
         _this.prefs.excludedTopics.forEach(excludedTopic => {
             delete unreadLinks[excludedTopic]
         });
-
-        Utils.extend(_this.db.unreadLinks, unreadLinks);
-        Utils.extend(_this.db.lastPosters, extractLastPosters(htmlData));
+        
+        _this.db.unreadLinks = unreadLinks;
+        _this.db.lastPosters = extractLastPosters(htmlData);
         Utils.extend(_this.db.topicsDictionary, extractTopicNames(htmlData));
         Utils.extend(_this.db.boardsDictionary, extractBoardNames(htmlData));
 
-        newUnreadTopics = !Utils.containsValues(_this.db.unreadTopics, Object.keys(unreadLinks));
+        let newUnreadTopics = !Utils.containsValues(_this.db.unreadTopics, Object.keys(unreadLinks));
 
         _this.db.unreadTopics = Object.keys(unreadLinks).reverse();
         _this.notifierOnTopicsChange();
 
         return newUnreadTopics;
-    }).then(param => {
+    });
+
+    fetchPromise.then(param => {
         _this.setLoading(false);
-        return param;
     }).catch(param => {
         _this.setLoading(false);
-        return Promise.reject(param);
     });
+
+    return fetchPromise;
 }
 
 TopicsManager.prototype.seedFromHTML = function (htmlData) {

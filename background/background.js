@@ -101,14 +101,17 @@ function updater() {
                 }
                 return minutesNormal;
             }).catch(reason => {
-                console.log(reason, consecutiveExecep);
-                return minutesNormal * Math.pow(1.2, consecutiveExecep++);
+                console.log("Error Updating", reason);
+                let minutesExeption = minutesNormal;
+                if (!navigator.onLine) minutesExeption = 0.5;
+                else if (reason.statusText === "timeout") minutesExeption = 2;
+                return minutesExeption * Math.min(10, Math.pow(1.2, consecutiveExecep++));
             });
         } else {
             return Promise.resolve(minutesNormal);
         }
     })().then(minutesToNextUpdate => {
-        console.log("Update in", minutesToNextUpdate);
+        console.log("Update in", minutesToNextUpdate, "minutes");
         updaterClock = setTimeout(updater, minutesToNextUpdate * 60 * 1000);
         topics.save();
     });
