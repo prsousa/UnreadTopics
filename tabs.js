@@ -22,16 +22,18 @@ TabsManager.prototype.closeTab = function (tabId) {
 TabsManager.prototype.openLinks = function (links) {
     if (links.length === 0) return;
 
+    links = links.slice(0, this.prefs.maxLinksOpen);
+
     let _this = this;
     chrome.tabs.query({ currentWindow: true, active: true }, function (tabs) {
         if (tabs && tabs.length > 0) {
             var windowId = tabs[0].windowId;
 
-            for (let i = 0; i < Math.min(_this.prefs.maxLinksOpen, links.length); i++) {
+            links.forEach((link, i) => {
                 setTimeout(() => {
-                    chrome.tabs.create({ windowId: windowId, url: links[i], active: (i == 0 && _this.prefs.setFocusOnFirst) });
+                    chrome.tabs.create({ windowId: windowId, url: link, active: (i == 0 && _this.prefs.setFocusOnFirst) });
                 }, i * 500);
-            };
+            });
 
             chrome.windows.update(windowId, { focused: _this.prefs.setFocusOnFirst });
         } else if (tabs) {
