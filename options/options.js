@@ -1,12 +1,14 @@
 const chromep = new ChromePromise();
-let countdownClock;
 
 function saveOptions() {
     let newTopicsPrefs = {
         unreadOption: $("#unreadOption").val(),
-        excludedTopics: $("#excludedTopics").val().trim().split("\n").filter(elem => {
-            return elem.length > 0;
-        })
+        excludedTopics: $("#excludedTopics").val().trim().split("\n")
+            .map(topicId => {
+                return parseInt(topicId);
+            }).filter(topicId => {
+                return topicId;
+            })
     };
 
     let newTabsPrefs = {
@@ -33,6 +35,8 @@ function saveOptions() {
         Utils.saveRemotely(newOtherPrefs)
     ]).then(results => {
         displayMensagem("Opções Gravadas");
+        refreshExtensionData();
+        restoreOptions();
     });
 
     console.log(newTopicsPrefs, newTabsPrefs, newNotifsPrefs, newOtherPrefs);
@@ -68,31 +72,9 @@ function restoreOptions() {
     });
 }
 
-function countdown(n, update, done) {
-    if (n === 0) {
-        done();
-    } else {
-        update(n - 1);
-        countdownClock = setTimeout(countdown, 1000, n - 1, update, done);
-    }
-}
-
 function displayMensagem(msg) {
     $("#mensagem #msgTxt").text(msg);
-    $("#mensagem").fadeIn();
-
-    $("#restartExtensionLink").focus();
-
-    clearTimeout(countdownClock);
-    countdown(5, (n) => {
-        $("#countdownTime").text(n + 1);
-    }, refreshExtensionDataAndDismissMessageAndReload);
-}
-
-function refreshExtensionDataAndDismissMessageAndReload() {
-    $("#mensagem").fadeOut();
-    refreshExtensionData();
-    restoreOptions();
+    $("#mensagem").fadeIn().delay(1000).fadeOut();
 }
 
 function refreshExtensionData() {
@@ -104,7 +86,6 @@ document.addEventListener('DOMContentLoaded', function () {
     $("#currentVersion").text(`(${extensionVersion})`)
 
     $("tr:odd").addClass("odd");
-    $("#restartExtensionLink").click(refreshExtensionDataAndDismissMessageAndReload);
 
     document.querySelector('#opcoes').addEventListener('submit', function (evt) {
         evt.preventDefault();

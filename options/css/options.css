@@ -63,11 +63,11 @@ span {
     color: white;
 
     width: 100%;
-    height: 150px;
+    height: 100px;
     position: fixed;
     background: green;
     top: 50%;
-    margin-top: -150px;
+    margin-top: -100px;
     z-index: 10;
 }
 
