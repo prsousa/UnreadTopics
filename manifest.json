@@ -40,7 +40,8 @@
 		"tabs",
 		"notifications",
 		"storage",
-		"gcm"
+		"gcm",
+		"idle"
 	],
 
 	"background": {

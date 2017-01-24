@@ -84,6 +84,9 @@ TopicsManager.prototype.setTopicRead = function (topicId) {
     let unreadPos = this.db.unreadTopics.indexOf(topicId);
     if (unreadPos >= 0) {
         this.db.unreadTopics.splice(unreadPos, 1);
+        delete this.db.unreadLinks[topicId];
+        delete this.db.lastPosters[topicId];
+        
         this.notifierOnTopicsChange();
     }
 }
@@ -127,10 +130,17 @@ TopicsManager.prototype.searchTopicsByName = function (searchText) {
     return res;
 }
 
+TopicsManager.prototype.postIsValid = function (postDetails) {
+    return this.knownBoard(postDetails.board)
+        && postDetails.posterId != this.db.userId
+        && !this.isExcluded(postDetails.topic)
+        && postDetails.timestamp > (this.lastUpdate / 1000);
+}
+
 TopicsManager.prototype.receiveValidPost = function (postDetails) {
     let newUnreadTopics = false;
 
-    if (this.knownBoard(postDetails.board) && postDetails.posterId != this.db.userId && !this.isExcluded(postDetails.topic)) {
+    if (this.postIsValid(postDetails)) {
         if (postDetails.currTopic == 0 || this.db.topicsDictionary[postDetails.topic] === undefined) {
             // new topic OR unknown topic name
             this.db.topicsDictionary[postDetails.topic] = postDetails.subject.trim().replace(/^Re: /gi, "");
@@ -152,7 +162,7 @@ TopicsManager.prototype.receiveValidPost = function (postDetails) {
 TopicsManager.prototype.fetchUnread = function () {
     let _this = this;
     this.setLoading(true);
-    
+
     let fetchPromise = Utils.ajax({
         url: this.prefs.forumURL + "?action=" + this.prefs.unreadOption,
         timeout: 10 * 1000 // 10 second timeout
@@ -175,7 +185,7 @@ TopicsManager.prototype.fetchUnread = function () {
         _this.prefs.excludedTopics.forEach(excludedTopic => {
             delete unreadLinks[excludedTopic]
         });
-        
+
         _this.db.unreadLinks = unreadLinks;
         _this.db.lastPosters = extractLastPosters(htmlData);
         Utils.extend(_this.db.topicsDictionary, extractTopicNames(htmlData));

@@ -12,6 +12,7 @@ let other = new GeneralManager();
 
 let updaterClock;
 let consecutiveExecep = 0;
+let currentIdleState = "active";
 
 function loadData() {
     return Promise.all([
@@ -29,7 +30,7 @@ loadData().then(() => {
         console.log("Login Status Changed", newStatus);
         updateBadge();
         if (newStatus) {
-            stopUpdating();
+            stopUpdater();
             updater();
         } else if (other.cleanDataOnLogout) {
             topics.clear();
@@ -79,7 +80,7 @@ function openConfigPage() {
     chrome.runtime.openOptionsPage();
 }
 
-function stopUpdating() {
+function stopUpdater() {
     clearTimeout(updaterClock);
 };
 
@@ -118,11 +119,27 @@ function updater() {
 }
 
 
+// Receive signal when computer idle state change
+chrome.idle.onStateChanged.addListener((newIdleState) => {
+    // console.log("Idle state changed", newIdleState, new Date());
+
+    let oldIdleState = currentIdleState;
+    currentIdleState = newIdleState;
+
+    if (newIdleState === "locked") {
+        stopUpdater();
+    } else if (oldIdleState === "locked" && newIdleState === "active") {
+        stopUpdater();
+        updater();
+    }
+});
+
+
 // Receive push notifications from GCM/FCM
 chrome.gcm.onMessage.addListener(message => {
-    if (!topics.isLoggedIn()) return;
+    if (!topics.isLoggedIn() || currentIdleState === "locked") return;
     if (message.data && message.data.topic && message.data.board && message.data.posterName) {
-        console.log("Push Message Received:", message, new Date());
+        // console.log("Push Message Received:", message, new Date(), Date.now());
 
         if (topics.knownBoard(message.data.board)) {
             if (topics.receiveValidPost(message.data)) {
