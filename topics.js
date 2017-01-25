@@ -160,6 +160,7 @@ TopicsManager.prototype.receiveValidPost = function (postDetails) {
 }
 
 TopicsManager.prototype.fetchUnread = function () {
+    if( this.isLoading ) return Promise.reject("already-fetching");
     let _this = this;
     this.setLoading(true);
 
