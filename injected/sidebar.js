@@ -225,6 +225,7 @@ $("<ul id='resultadoPesquisa' style='display: block;'></ul>").appendTo("#menuTPL
 
 function getBancoTopicosPorLer() {
     chrome.runtime.sendMessage({ "get-unread-topics": true }, function (topicos) {
+        topicos = topicos.filter( topico => topico.link );
         totalTopicos = topicos.length;
 
         $("ul#topicosPorLer").html("");
