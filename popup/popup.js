@@ -1,4 +1,6 @@
 $(document).ready(function () {
+    Analytics.trackPageView();
+    
     abreMenu();
     chrome.runtime.sendMessage({ "get-popup-sensibility": true }, function (sensibility) {
         startProgress(sensibility || 400, openUnreadTabs);
@@ -65,11 +67,13 @@ function openUnreadTabs() {
     $("#report").show().html("<hr />").prepend("A Carregar...");
 
     chrome.runtime.sendMessage({ "open-unread-topics": true }, function (response) {
-        console.log(response);
+        Analytics.addEvent('openUnreadTabs', 'request');
         if (!response) return;
 
         let msg = "";
         if (response.success) {
+            Analytics.addEvent('openUnreadTabs', 'success');
+            
             if (response.unreadTopics.length === 0) {
                 msg = "Tópicos Todos Lidos";
             } else {

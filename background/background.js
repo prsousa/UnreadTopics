@@ -24,6 +24,7 @@ function loadData() {
 }
 
 loadData().then(() => {
+    Analytics.trackPageView();
     topics.setUnreadTopicsChangeListener(updateBadge);
     topics.setOnLoadingChangeListener(updateBadge);
     topics.setLoginStatusChangeListener(newStatus => {
@@ -85,6 +86,7 @@ function stopUpdater() {
 };
 
 function updater() {
+    Analytics.addEvent('background-updater', 'request');
     console.log("Updating", new Date());
 
     if (topics.isLoggedIn() && !GCMManager.isRegistered()) {
@@ -96,6 +98,7 @@ function updater() {
         if (topics.isOutdated(10)) {
             console.log("Is Oudated", new Date());
             return topics.fetchUnread().then(newTopics => {
+                Analytics.addEvent('background-updater', 'success');
                 consecutiveExecep = 0;
                 if (newTopics) {
                     notifyUnreadTopics();
@@ -280,6 +283,7 @@ chrome.runtime.onInstalled.addListener(function (details) {
     }
 
     if (details.previousVersion === "3.0.1") {
+        Analytics.addEvent('extension-update-' + newVersion, 'request');
         // migrate data
         chromep.storage.sync.get(["topics", "notifs", "tabs", "other"]).then(oldItems => {
             // Topics
@@ -328,6 +332,7 @@ chrome.runtime.onInstalled.addListener(function (details) {
                 return container.save();
             }));
         }).then(() => {
+            Analytics.addEvent('extension-update-' + newVersion, 'success');
             return loadData();
         });
     }
