@@ -87,7 +87,7 @@ NotificationsManager.prototype.notifyTopics = function (items) {
     return true;
 }
 
-NotificationsManager.prototype.notifyUpdate = function (msg, newVersion) {
+NotificationsManager.prototype.notifyUpdate = function (msg, newVersion, requireInt) {
     if (this.isCurrentlyBlocked()) return false;
     this.playSound();
 
@@ -99,7 +99,7 @@ NotificationsManager.prototype.notifyUpdate = function (msg, newVersion) {
         priority: 1,
         isClickable: true,
         contextMessage: newVersion,
-        requireInteraction: true
+        requireInteraction: requireInt
     };
 
     chromep.notifications.create('update', opt);

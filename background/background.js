@@ -333,6 +333,7 @@ chrome.runtime.onInstalled.addListener(function (details) {
             }));
         }).then(() => {
             Analytics.addEvent('extension-update-' + newVersion, 'success');
+            notifs.notifyUpdate('Clica aqui para as opções', newVersion, false);
             return loadData();
         });
     }
