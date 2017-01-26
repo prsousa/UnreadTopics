@@ -31,7 +31,6 @@ loadData().then(() => {
         console.log("Login Status Changed", newStatus);
         updateBadge();
         if (newStatus) {
-            stopUpdater();
             updater();
         } else if (other.cleanDataOnLogout) {
             topics.clear();
@@ -116,6 +115,7 @@ function updater() {
         }
     })().then(minutesToNextUpdate => {
         console.log("Update in", minutesToNextUpdate, "minutes");
+        stopUpdater();
         updaterClock = setTimeout(updater, minutesToNextUpdate * 60 * 1000);
         topics.save();
     });
@@ -132,7 +132,6 @@ chrome.idle.onStateChanged.addListener((newIdleState) => {
     if (newIdleState === "locked") {
         stopUpdater();
     } else if (oldIdleState === "locked" && newIdleState === "active") {
-        stopUpdater();
         updater();
     }
 });
