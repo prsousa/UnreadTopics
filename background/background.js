@@ -71,6 +71,7 @@ function openUnreadTopics() {
         let unreadTopics = topics.getLocalUnreadTopics();
         let unreadLinks = unreadTopics.map(topic => { return topic.link });
         tabs.openLinks(unreadLinks);
+        notifs.clearTopicsNotifications();
         topics.save();
         return unreadTopics;
     });

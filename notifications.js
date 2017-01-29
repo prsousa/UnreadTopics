@@ -56,6 +56,10 @@ NotificationsManager.prototype.playSound = function () {
     audio.play();
 }
 
+NotificationsManager.prototype.clearTopicsNotifications = function () {
+    return chromep.notifications.clear('unread');
+}
+
 NotificationsManager.prototype.notifyTopics = function (items) {
     if (this.isCurrentlyBlocked()) return false;
     if (!items || items.length === 0) return false;
