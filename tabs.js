@@ -35,9 +35,9 @@ TabsManager.prototype.openLinks = function (links) {
                 }, i * 500);
             });
 
-            chrome.windows.update(windowId, { focused: _this.prefs.setFocusOnFirst });
+            chrome.windows.update(windowId, { focused: true });
         } else if (tabs) {
-            chrome.windows.create({ url: links, focused: _this.prefs.setFocusOnFirst });
+            chrome.windows.create({ url: links });
         }
     });
 }
