@@ -82,7 +82,8 @@ NotificationsManager.prototype.notifyTopics = function (items) {
         contextMessage: items.length + " tópico" + (items.length > 1 ? 's' : '') + " por ler"
     };
 
-    chromep.notifications.clear('unread').then(wasCleared => {
+    chromep.notifications.update('unread', opt).then(wasUpdated => {
+        if (wasUpdated) return;
         chromep.notifications.create('unread', opt).then(id => {
             // clear on timeout?
         });
