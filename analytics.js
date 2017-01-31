@@ -4,8 +4,8 @@ var _gaq = _gaq || [];
 _gaq.push(['_setAccount', 'UA-90758466-1']);
 
 var Analytics = Analytics || {
-    addEvent: function(category, eventStr) {
-        _gaq.push(['_trackEvent', category, eventStr]);
+    addEvent: function(category, action, label) {
+        _gaq.push(['_trackEvent', category, action, String(label)]);
     },
     trackPageView: function() {
         _gaq.push(['_trackPageview']);

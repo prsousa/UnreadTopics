@@ -68,6 +68,7 @@ function notifyUnreadTopics() {
 
 function openUnreadTopics() {
     return topics.fetchUnread().then(newTopics => {
+        Analytics.addEvent('fetch-unread', 'open-unread-topics', newTopics);
         let unreadTopics = topics.getLocalUnreadTopics();
         let unreadLinks = unreadTopics.map(topic => { return topic.link });
         tabs.openLinks(unreadLinks);
@@ -86,7 +87,7 @@ function stopUpdater() {
 };
 
 function updater() {
-    Analytics.addEvent('background-updater', 'request');
+    Analytics.addEvent('background-updater', 'request', topics.db.userId);
     console.log("Updating", new Date());
 
     if (topics.isLoggedIn() && !GCMManager.isRegistered()) {
@@ -98,7 +99,7 @@ function updater() {
         if (topics.isOutdated(10)) {
             console.log("Is Oudated", new Date());
             return topics.fetchUnread().then(newTopics => {
-                Analytics.addEvent('background-updater', 'success');
+                Analytics.addEvent('fetch-unread', 'background-updater', newTopics);
                 consecutiveExecep = 0;
                 if (newTopics) {
                     notifyUnreadTopics();
@@ -192,6 +193,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             case "open-config-page": openConfigPage(); break;
             case "get-popup-sensibility": sendResponse(other.prefs.popupSensibility); break; // OUT: popupSensibility (ms)
             case "fetch-unread-topics":
+                Analytics.addEvent('fetch-unread', 'fetch-unread-topics', topics.db.userId);
                 topics.fetchUnread().then(newTopics => { // OUT: indication of conclusion
                     sendResponse({
                         success: true,
@@ -241,6 +243,7 @@ chrome.runtime.onInstalled.addListener(function (details) {
     let newVersion = chrome.runtime.getManifest().version;
 
     if (details.previousVersion < newVersion) {
+        Analytics.addEvent('extension-update', 'request', newVersion);
         console.log(`Updated from ${details.previousVersion} to ${newVersion}`);
     }
 
@@ -283,7 +286,6 @@ chrome.runtime.onInstalled.addListener(function (details) {
     }
 
     if (details.previousVersion === "3.0.1") {
-        Analytics.addEvent('extension-update-' + newVersion, 'request');
         // migrate data
         chromep.storage.sync.get(["topics", "notifs", "tabs", "other"]).then(oldItems => {
             // Topics
@@ -332,7 +334,7 @@ chrome.runtime.onInstalled.addListener(function (details) {
                 return container.save();
             }));
         }).then(() => {
-            Analytics.addEvent('extension-update-' + newVersion, 'success');
+            Analytics.addEvent('extension-update', 'success', newVersion);
             notifs.notifyUpdate('Clica aqui para as opções', newVersion, false);
             return loadData();
         });

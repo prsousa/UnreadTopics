@@ -3,7 +3,10 @@ $(document).ready(function () {
     
     abreMenu();
     chrome.runtime.sendMessage({ "get-popup-sensibility": true }, function (sensibility) {
-        startProgress(sensibility || 400, openUnreadTabs);
+        startProgress(sensibility || 400, () => {
+            Analytics.addEvent('popup', 'open-unread-topics', 'progress-bar');
+            openUnreadTabs();
+        });
     });
     $("#filtro").focus();
     $("#filtro").on('search keyup', function (event) {
@@ -67,13 +70,10 @@ function openUnreadTabs() {
     $("#report").show().html("<hr />").prepend("A Carregar...");
 
     chrome.runtime.sendMessage({ "open-unread-topics": true }, function (response) {
-        Analytics.addEvent('openUnreadTabs', 'request');
         if (!response) return;
 
         let msg = "";
-        if (response.success) {
-            Analytics.addEvent('openUnreadTabs', 'success');
-            
+        if (response.success) {            
             if (response.unreadTopics.length === 0) {
                 msg = "Tópicos Todos Lidos";
             } else {
@@ -101,7 +101,10 @@ function abreMenu() {
         chrome.runtime.sendMessage({ "open-config-page": true });
     });
 
-    $("#topicosLer").click(openUnreadTabs);
+    $("#topicosLer").click(() => {
+        Analytics.addEvent('popup', 'open-unread-topics', 'button');
+        openUnreadTabs();
+    });
     $("#notifications").click(toggleNofiticationState);
 
     $("#menu").show();
