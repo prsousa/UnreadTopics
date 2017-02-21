@@ -69,6 +69,7 @@ function notifyUnreadTopics() {
 function openUnreadTopics() {
     return topics.fetchUnread().then(newTopics => {
         Analytics.addEvent('fetch-unread', 'open-unread-topics', newTopics);
+        updateIn(30);
         let unreadTopics = topics.getLocalUnreadTopics();
         let unreadLinks = unreadTopics.map(topic => { return topic.link });
         tabs.openLinks(unreadLinks);
@@ -86,6 +87,11 @@ function stopUpdater() {
     clearTimeout(updaterClock);
 };
 
+function updateIn(minutes) {
+    stopUpdater();
+    updaterClock = setTimeout(updater, minutes * 60 * 1000);
+}
+
 function updater() {
     Analytics.addEvent('background-updater', 'request', topics.db.userId);
     console.log("Updating", new Date());
@@ -94,32 +100,27 @@ function updater() {
         GCMManager.register(topics.db.userId, "625116915699");
     }
 
-    (() => {
-        let minutesNormal = 30;
-        if (topics.isOutdated(10)) {
-            console.log("Is Oudated", new Date());
-            return topics.fetchUnread().then(newTopics => {
-                Analytics.addEvent('fetch-unread', 'background-updater', newTopics);
-                consecutiveExecep = 0;
-                if (newTopics) {
-                    notifyUnreadTopics();
-                }
-                return minutesNormal;
-            }).catch(reason => {
-                console.log("Error Updating", reason);
-                let minutesExeption = minutesNormal;
-                if (!navigator.onLine) minutesExeption = 0.5;
-                else if (reason.statusText === "timeout") minutesExeption = 2;
-                return minutesExeption * Math.min(10, Math.pow(1.2, consecutiveExecep++));
-            });
-        } else {
-            return Promise.resolve(minutesNormal);
+    const minutesNormal = 30;
+    return topics.fetchUnread().then(newTopics => {
+        Analytics.addEvent('fetch-unread', 'background-updater', newTopics);
+        consecutiveExecep = 0;
+        if (newTopics) {
+            notifyUnreadTopics();
         }
-    })().then(minutesToNextUpdate => {
-        console.log("Update in", minutesToNextUpdate, "minutes");
-        stopUpdater();
-        updaterClock = setTimeout(updater, minutesToNextUpdate * 60 * 1000);
-        topics.save();
+        return minutesNormal;
+    }).catch(reason => {
+        console.log("Error Updating", reason);
+        let minutesExeption = minutesNormal;
+        
+        if (!navigator.onLine)
+            minutesExeption = 0.5;
+        else if (reason.statusText === "timeout")
+            minutesExeption = 2;
+        
+        return minutesExeption * Math.min(10, Math.pow(1.2, consecutiveExecep++));
+    }).then(minutesToNextUpdate => {
+        updateIn(minutesToNextUpdate);
+        return topics.save();
     });
 }
 
@@ -195,6 +196,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             case "fetch-unread-topics":
                 Analytics.addEvent('fetch-unread', 'fetch-unread-topics', topics.db.userId);
                 topics.fetchUnread().then(newTopics => { // OUT: indication of conclusion
+                    updateIn(30);
                     sendResponse({
                         success: true,
                         newTopics: newTopics
