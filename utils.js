@@ -49,6 +49,17 @@ Utils.ajax = function (options) {
 }
 
 /**
+ * Delays Promise resolvement
+ * @param {Integer} delay time in minutes
+ * @return {Promise} ES6 Promise of a future event
+ */
+Utils.delay = function (minutes) {
+    return new Promise(function (resolve, reject) {
+        setTimeout(resolve, minutes * 60 * 1000);
+    });
+}
+
+/**
  * Loads presisted data to an object
  * @param {Object} destination object
  * @param {Object} database resource

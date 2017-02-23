@@ -11,7 +11,6 @@ let tabs = new TabsManager();
 let other = new GeneralManager();
 
 let updaterClock;
-let consecutiveExecep = 0;
 let currentIdleState = "active";
 
 function loadData() {
@@ -87,9 +86,34 @@ function stopUpdater() {
     clearTimeout(updaterClock);
 };
 
+function doUpdate(consecutiveExecep = 0) {
+    const minutesNormal = 30;
+    return topics.fetchUnread().then(newTopics => {
+        Analytics.addEvent('fetch-unread', 'background-updater', newTopics);
+
+        if (newTopics) {
+            notifyUnreadTopics();
+        }
+        return minutesNormal;
+    }).catch(reason => {
+        console.log("Error Updating", reason);
+        let minutesExeption = minutesNormal;
+
+        if (!navigator.onLine)
+            minutesExeption = 0.5;
+        else if (reason.statusText === "timeout")
+            minutesExeption = 2;
+
+        let delayTime = minutesExeption * Math.min(10, Math.pow(1.2, consecutiveExecep));
+        console.log("Retrying in ", delayTime, "minutes");
+        return Utils.delay(delayTime).then(() => doUpdate(consecutiveExecep + 1));
+    });
+}
+
 function updateIn(minutes) {
     stopUpdater();
     updaterClock = setTimeout(updater, minutes * 60 * 1000);
+    console.log("Update in", minutes, "minutes", new Date());
 }
 
 function updater() {
@@ -100,25 +124,7 @@ function updater() {
         GCMManager.register(topics.db.userId, "625116915699");
     }
 
-    const minutesNormal = 30;
-    return topics.fetchUnread().then(newTopics => {
-        Analytics.addEvent('fetch-unread', 'background-updater', newTopics);
-        consecutiveExecep = 0;
-        if (newTopics) {
-            notifyUnreadTopics();
-        }
-        return minutesNormal;
-    }).catch(reason => {
-        console.log("Error Updating", reason);
-        let minutesExeption = minutesNormal;
-        
-        if (!navigator.onLine)
-            minutesExeption = 0.5;
-        else if (reason.statusText === "timeout")
-            minutesExeption = 2;
-        
-        return minutesExeption * Math.min(10, Math.pow(1.2, consecutiveExecep++));
-    }).then(minutesToNextUpdate => {
+    return doUpdate().then(minutesToNextUpdate => {
         updateIn(minutesToNextUpdate);
         return topics.save();
     });
@@ -128,20 +134,23 @@ function updater() {
 // Receive signal when computer idle state change
 chrome.idle.onStateChanged.addListener((newIdleState) => {
     // console.log("Idle state changed", newIdleState, new Date());
+    if (currentIdleState === "locked" && newIdleState === "active") {
+        updater().then(() => {
+            currentIdleState = newIdleState;
+        });
+    } else {
+        currentIdleState = newIdleState;
 
-    let oldIdleState = currentIdleState;
-    currentIdleState = newIdleState;
-
-    if (newIdleState === "locked") {
-        stopUpdater();
-    } else if (oldIdleState === "locked" && newIdleState === "active") {
-        updater();
+        if (newIdleState === "locked") {
+            stopUpdater();
+        }
     }
 });
 
 
 // Receive push notifications from GCM/FCM
 chrome.gcm.onMessage.addListener(message => {
+    console.log("state when onMessage", currentIdleState, new Date().getTime(), new Date());
     if (!topics.isLoggedIn() || currentIdleState === "locked") return;
     if (message.data && message.data.topic && message.data.board && message.data.posterName) {
         // console.log("Push Message Received:", message, new Date(), Date.now());
