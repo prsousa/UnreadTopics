@@ -31,7 +31,7 @@ loadData().then(() => {
         updateBadge();
         if (newStatus) {
             updater();
-        } else if (other.cleanDataOnLogout) {
+        } else if (other.prefs.cleanDataOnLogout) {
             topics.clear();
             topics.save();
         }
