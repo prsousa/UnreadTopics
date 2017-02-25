@@ -191,6 +191,14 @@ ul#topicosPorLer::-webkit-scrollbar-thumb {
     -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5); 
 }
 
+#reportLastUpdate {
+    text-align: center;
+    font-style: italic;
+    padding: 10px;
+    color: #eee;
+    font-size: 11px;
+}
+
 #reportSelecionados {
     padding: 10px 0 10px 0;
     background: rgba(86,16,23,0.5);

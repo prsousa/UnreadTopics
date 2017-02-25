@@ -177,7 +177,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         switch (req) {
             case "set-html": topics.seedFromHTML(request[req]); topics.save(); break; // IN: htmlData
             case "set-reading-last-page": topics.setTopicRead(request[req]); topics.save(); break; // IN: topicId
-            case "get-unread-topics": sendResponse(topics.getLocalUnreadTopics()); break; // OUT: unreadTopics
+            case "get-unread-topics": sendResponse({
+                topics: topics.getLocalUnreadTopics(),
+                lastUpdate: topics.lastUpdate
+            }); break; // OUT: unread topics and last update date
             case "get-embed-images": sendResponse(other.prefs.displayImages); break; // OUT: display image preference
             case "open-unread-topics":
                 openUnreadTopics().then(topics => {

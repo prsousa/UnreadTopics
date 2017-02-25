@@ -217,15 +217,28 @@ $("#refreshTopics").on("click", function (e) {
 
 
 $("<ul id='topicosPorLer'></ul>").appendTo("#menuTPLS");
-
 $("<div id='reportSelecionados'></div>").appendTo("#menuTPLS");
-
+$("<div id='reportLastUpdate'></div>").appendTo("#menuTPLS");
 $("<ul id='resultadoPesquisa' style='display: block;'></ul>").appendTo("#menuTPLS");
 
+ Date.prototype.prettyDate = function() {
+     let res = "há mais de 30 minutos";
+     let diffSec = ( new Date() - this ) / 1000;
+
+     if( diffSec < 10 ) res = "agora mesmo";
+     else if( diffSec < 60 ) res = "há menos de um minuto atrás";
+     else if( diffSec < (60 * 30) ) {
+         let min = Math.floor(diffSec / 60);
+         let plural = min > 1 ? "s" : "";
+         res = `há ${min} minuto${plural} atrás`;
+     }
+
+     return res;
+}
 
 function getBancoTopicosPorLer() {
-    chrome.runtime.sendMessage({ "get-unread-topics": true }, function (topicos) {
-        topicos = topicos.filter( topico => topico.link );
+    chrome.runtime.sendMessage({ "get-unread-topics": true }, function (res) {
+        let topicos = res.topics.filter( topico => topico.link );
         totalTopicos = topicos.length;
 
         $("ul#topicosPorLer").html("");
@@ -237,6 +250,7 @@ function getBancoTopicosPorLer() {
 
         $("#topicosPorLer li").first().addClass("active");
         updateReportSelecionados();
+        $("#reportLastUpdate").text( new Date(res.lastUpdate).prettyDate() ) ;
     });
 }
 
@@ -254,7 +268,7 @@ function filter(by, container) {
     var value = $(by).val();
 
     if (value) {
-        $("#topicosPorLer, #reportSelecionados").hide();
+        $("#topicosPorLer, #reportSelecionados, #reportLastUpdate").hide();
         $(container).fadeIn();
         chrome.runtime.sendMessage({ "search-topics": value }, function (topicosPotenciais) {
             $(container).html("");
@@ -264,7 +278,7 @@ function filter(by, container) {
         });
     } else {
         $(container).hide();
-        $("#topicosPorLer, #reportSelecionados").fadeIn();
+        $("#topicosPorLer, #reportSelecionados, #reportLastUpdate").fadeIn();
     }
 }
 
