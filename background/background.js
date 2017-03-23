@@ -120,7 +120,7 @@ function updater() {
     Analytics.addEvent('background-updater', 'request', topics.db.userId);
     console.log("Updating", new Date());
 
-    if (topics.isLoggedIn() && !GCMManager.isRegistered()) {
+    if (topics.isLoggedIn()) {
         GCMManager.register(topics.db.userId, "625116915699");
     }
 
