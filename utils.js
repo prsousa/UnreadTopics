@@ -60,6 +60,28 @@ Utils.delay = function (minutes) {
 }
 
 /**
+ * Keeps on retrying a function when it fails
+ * @param {Function} function to (re)execute
+ * @param {Integer} number of consecutive exceptions
+ * @param {Integer} base delay, in minutes
+ * @return {Promise} ES6 Promise of the successful call
+ */
+Utils.doRetry = function(fn, consecutiveExecep = 0, baseDelay = 5) {
+    return fn().catch(reason => {
+        console.log("Error Updating", reason);
+
+        if (!navigator.onLine)
+            baseDelay = 0.5;
+        else if (reason.statusText === "timeout")
+            baseDelay = 2;
+
+        let delayTime = baseDelay * Math.min(10, Math.pow(1.4, consecutiveExecep));
+        console.log("Retrying in ", delayTime, "minutes");
+        return Utils.delay(delayTime).then(() => Utils.doRetry(fn, consecutiveExecep + 1));
+    });
+}
+
+/**
  * Loads presisted data to an object
  * @param {Object} destination object
  * @param {Object} database resource

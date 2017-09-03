@@ -10,7 +10,7 @@ let notifs = new NotificationsManager();
 let tabs = new TabsManager();
 let other = new GeneralManager();
 
-let updaterClock;
+let updaterClock = {};
 let currentIdleState = "active";
 
 function loadData() {
@@ -30,7 +30,8 @@ loadData().then(() => {
         console.log("Login Status Changed", newStatus);
         updateBadge();
         if (newStatus) {
-            updater();
+            updaterUnread();
+            updaterGCM();
         } else if (other.prefs.cleanDataOnLogout) {
             topics.clear();
             topics.save();
@@ -38,7 +39,8 @@ loadData().then(() => {
     });
 
     updateBadge();
-    updater();
+    updaterUnread();
+    updaterGCM();
 });
 
 function updateBadge() {
@@ -68,7 +70,7 @@ function notifyUnreadTopics() {
 function openUnreadTopics() {
     return topics.fetchUnread().then(newTopics => {
         Analytics.addEvent('fetch-unread', 'open-unread-topics', newTopics);
-        updateIn(30);
+        updateUnreadIn(30);
         let unreadTopics = topics.getLocalUnreadTopics();
         let unreadLinks = unreadTopics.map(topic => { return topic.link });
         tabs.openLinks(unreadLinks);
@@ -82,50 +84,44 @@ function openConfigPage() {
     chrome.runtime.openOptionsPage();
 }
 
-function stopUpdater() {
-    clearTimeout(updaterClock);
+function stopUpdater(clock) {
+    clearTimeout(clock);
 };
 
-function doUpdate(consecutiveExecep = 0) {
-    const minutesNormal = 30;
-    return topics.fetchUnread().then(newTopics => {
-        Analytics.addEvent('fetch-unread', 'background-updater', newTopics);
-
-        if (newTopics) {
-            notifyUnreadTopics();
-        }
-        return minutesNormal;
-    }).catch(reason => {
-        console.log("Error Updating", reason);
-        let minutesExeption = minutesNormal;
-
-        if (!navigator.onLine)
-            minutesExeption = 0.5;
-        else if (reason.statusText === "timeout")
-            minutesExeption = 2;
-
-        let delayTime = minutesExeption * Math.min(10, Math.pow(1.2, consecutiveExecep));
-        console.log("Retrying in ", delayTime, "minutes");
-        return Utils.delay(delayTime).then(() => doUpdate(consecutiveExecep + 1));
-    });
+function updateGCMIn(minutes) {
+    stopUpdater(updaterClock.gcm);
+    updaterClock.gcm = setTimeout(updaterGCM, minutes * 60 * 1000);
+    console.log("Update 'GCM' in", minutes, "minutes", new Date());
 }
 
-function updateIn(minutes) {
-    stopUpdater();
-    updaterClock = setTimeout(updater, minutes * 60 * 1000);
-    console.log("Update in", minutes, "minutes", new Date());
+function updaterGCM() {
+    if (topics.isLoggedIn()) {
+        Utils.doRetry(() => {
+            return GCMManager.register(topics.db.userId, "625116915699");
+        }).then(() => {
+            stopUpdater(updaterClock.gcm);
+            updateGCMIn(10);
+        });
+    }
 }
 
-function updater() {
+function updateUnreadIn(minutes) {
+    stopUpdater(updaterClock.unread);
+    updaterClock.unread = setTimeout(updaterUnread, minutes * 60 * 1000);
+    console.log("Update 'Unread' in", minutes, "minutes", new Date());
+}
+
+function updaterUnread() {
     Analytics.addEvent('background-updater', 'request', topics.db.userId);
     console.log("Updating", new Date());
 
-    if (topics.isLoggedIn()) {
-        GCMManager.register(topics.db.userId, "625116915699");
-    }
-
-    return doUpdate().then(minutesToNextUpdate => {
-        updateIn(minutesToNextUpdate);
+    return Utils.doRetry(() => {
+        return topics.fetchUnread().then(newTopics => {
+            Analytics.addEvent('fetch-unread', 'background-updater', newTopics);
+            if (newTopics) notifyUnreadTopics();
+        })
+    }).then(() => {
+        updateUnreadIn(30);
         return topics.save();
     });
 }
@@ -135,14 +131,15 @@ function updater() {
 chrome.idle.onStateChanged.addListener((newIdleState) => {
     // console.log("Idle state changed", newIdleState, new Date());
     if (currentIdleState === "locked" && newIdleState === "active") {
-        updater().then(() => {
+        updaterUnread().then(() => {
             currentIdleState = newIdleState;
         });
+        updaterGCM();
     } else {
         currentIdleState = newIdleState;
 
         if (newIdleState === "locked") {
-            stopUpdater();
+            stopUpdater(updaterClock.unread);
         }
     }
 });
@@ -208,7 +205,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             case "fetch-unread-topics":
                 Analytics.addEvent('fetch-unread', 'fetch-unread-topics', topics.db.userId);
                 topics.fetchUnread().then(newTopics => { // OUT: indication of conclusion
-                    updateIn(30);
+                    updateUnreadIn(30);
                     sendResponse({
                         success: true,
                         newTopics: newTopics
