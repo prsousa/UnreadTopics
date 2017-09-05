@@ -4,7 +4,7 @@
 	"name": "Tópicos Por Ler Em Separadores",
 	"short_name": "Tópicos por Ler",
 	"description": "Abre os tópicos por ler em diferentes separadores, notificações, pesquisas, ementa da UM e upload de imagens",
-	"version": "3.0.4",
+	"version": "3.0.5",
 
 	"commands": {
 		"open-unread-topics": {
