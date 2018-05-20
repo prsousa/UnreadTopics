@@ -2,6 +2,7 @@ const chromep = new ChromePromise();
 
 function saveOptions() {
   let newTopicsPrefs = {
+    forumURL: $("#forumURL").val(),
     unreadOption: $("#unreadOption").val(),
     excludedTopics: $("#excludedTopics")
       .val()
@@ -55,6 +56,7 @@ function restoreOptions() {
   let promises = [topics.load(), tabs.load(), notifs.load(), other.load()];
 
   Promise.all(promises).then(results => {
+    $("#forumURL").val(topics.prefs.forumURL);
     $("#unreadOption").val(topics.prefs.unreadOption);
     $("#excludedTopics").val(topics.prefs.excludedTopics.join("\n"));
 

@@ -10,7 +10,7 @@ var TopicsManager =
     this.isLoading = false;
 
     this.prefs = {
-      forumURL: "http://lei-uminho.com/forum/",
+      forumURL: "http://www.lei-uminho.com/forum/",
       unreadOption: "unread;all;start=0",
       excludedTopics: []
     };

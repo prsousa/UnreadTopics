@@ -313,115 +313,19 @@ chrome.runtime.onInstalled.addListener(function(details) {
     console.log(`Updated from ${details.previousVersion} to ${newVersion}`);
   }
 
-  if (details.previousVersion < "3.0.0") {
+  if (details.previousVersion < "3.1.0") {
     // Migrate Data
-    // TODO: update to new storage scheme
+    topics.prefs.forumURL = "http://www.lei-uminho.com/forum/";
 
-    other.prefs = {
-      popupSensibility:
-        parseInt(localStorage["TIMECLICK"]) || other.prefs.popupSensibility,
-      displayImages:
-        localStorage["displayPictures"] === "true" || other.prefs.displayImages
-    };
-
-    topics.prefs = {
-      unreadOption: localStorage["abrirOp"] || topics.prefs.unreadOption,
-      excludedTopics: (localStorage["exclusoes"] || "")
-        .trim()
-        .split("\n")
-        .filter(elem => {
-          return elem.length > 0;
-        })
-    };
-
-    notifs.prefs = {
-      enabled: localStorage["notificacoes"] === "sim" || notifs.prefs.enabled,
-      audioVolume:
-        localStorage["somNotificacoes"] === "false"
-          ? 0.0
-          : notifs.prefs.audioVolume,
-      muteHourPeriod:
-        parseInt(localStorage["horasPausaNotificacoes"]) ||
-        notifs.prefs.muteHourPeriod
-    };
-
-    tabs.prefs = {
-      setFocusOnFirst:
-        localStorage["foco"] !== "nao" || tabs.prefs.setFocusOnFirst,
-      maxLinksOpen: parseInt(localStorage["maxTabs"]) || tabs.prefs.maxLinksOpen
-    };
-
-    let containers = [other, topics, notifs, tabs];
+    let containers = [topics];
     Promise.all(
       containers.map(container => {
         return container.save();
       })
     ).then(() => {
-      localStorage.clear();
+      Analytics.addEvent("extension-update", "success", newVersion);
+      notifs.notifyUpdate("Clica aqui para as opções", newVersion, true);
       return loadData();
     });
-
-    notifs.notifyUpdate("Clica aqui para as opções", newVersion);
-  }
-
-  if (details.previousVersion === "3.0.1") {
-    // migrate data
-    chromep.storage.sync
-      .get(["topics", "notifs", "tabs", "other"])
-      .then(oldItems => {
-        // Topics
-        if (oldItems.topics) {
-          for (let k in topics.db) {
-            topics.db[k] = oldItems.topics[k] || topics.db[k];
-          }
-
-          for (let k in topics.prefs) {
-            topics.prefs[k] = oldItems.topics[k] || topics.prefs[k];
-          }
-        }
-
-        // Tabs
-        if (oldItems.tabs) {
-          for (let k in tabs.prefs) {
-            tabs.prefs[k] = oldItems.tabs[k] || tabs.prefs[k];
-          }
-        }
-
-        // Notifs
-        if (oldItems.notifs) {
-          for (let k in notifs.db) {
-            notifs.db[k] = oldItems.notifs[k] || notifs.db[k];
-          }
-
-          for (let k in notifs.prefs) {
-            notifs.prefs[k] = oldItems.notifs[k] || notifs.prefs[k];
-          }
-        }
-
-        // Other
-        if (oldItems.other) {
-          for (let k in other.prefs) {
-            other.prefs[k] = oldItems.other[k] || other.prefs[k];
-          }
-        }
-
-        let clearSyncP = chromep.storage.sync.clear();
-        let clearLocalP = chromep.storage.local.clear();
-
-        return Promise.all([clearSyncP, clearLocalP]);
-      })
-      .then(() => {
-        let containers = [other, topics, notifs, tabs];
-        return Promise.all(
-          containers.map(container => {
-            return container.save();
-          })
-        );
-      })
-      .then(() => {
-        Analytics.addEvent("extension-update", "success", newVersion);
-        notifs.notifyUpdate("Clica aqui para as opções", newVersion, false);
-        return loadData();
-      });
   }
 });
