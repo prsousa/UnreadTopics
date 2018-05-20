@@ -64,32 +64,32 @@ NotificationsManager.prototype.notifyTopics = function (items) {
     if (this.isCurrentlyBlocked()) return false;
     if (!items || items.length === 0) return false;
 
-    this.playSound();
+    return chromep.notifications.getPermissionLevel().then(level => {
+        if (level !== "granted") return Promise.reject(false);
+        return chromep.notifications.clear('unread');
+    }).then(wasCleared => {
+        var postponePeriod = { title: "Não incomodar (" + this.prefs.muteHourPeriod + "h)", iconUrl: "/img/postpone.svg" };
+        // var naoIncomodarUMBtn = { title: "Não incomodar aqui", iconUrl: "img/UM.png" };
+        var buttonsToDisplay = [postponePeriod];
 
-    var postponePeriod = { title: "Não incomodar (" + this.prefs.muteHourPeriod + "h)", iconUrl: "/img/postpone.svg" };
-    // var naoIncomodarUMBtn = { title: "Não incomodar aqui", iconUrl: "img/UM.png" };
-    var buttonsToDisplay = [postponePeriod];
+        var opt = {
+            type: 'list',
+            title: 'Fórum de LEI',
+            message: 'Topicos por Ler',
+            iconUrl: '/img/unreadNotification.svg',
+            priority: 1,
+            items: items,
+            buttons: buttonsToDisplay,
+            isClickable: true,
+            contextMessage: items.length + " tópico" + (items.length > 1 ? 's' : '') + " por ler"
+        };
 
-    var opt = {
-        type: 'list',
-        title: 'Fórum de LEI',
-        message: 'Topicos por Ler',
-        iconUrl: '/img/unreadNotification.svg',
-        priority: 1,
-        items: items,
-        buttons: buttonsToDisplay,
-        isClickable: true,
-        contextMessage: items.length + " tópico" + (items.length > 1 ? 's' : '') + " por ler"
-    };
-
-
-    chromep.notifications.clear('unread').then(wasCleared => {
-        chromep.notifications.create('unread', opt).then(id => {
-            // clear on timeout?
-        });
-    });
-
-    return true;
+        return chromep.notifications.create('unread', opt);
+    }).then(notificationId => {
+        this.playSound();
+        // clear on timeout?
+        return true;
+    }).catch(err => false);
 }
 
 NotificationsManager.prototype.notifyUpdate = function (msg, newVersion, requireInt) {
