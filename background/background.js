@@ -311,6 +311,7 @@ chrome.runtime.onInstalled.addListener(function(details) {
   if (details.previousVersion < newVersion) {
     Analytics.addEvent("extension-update", "request", newVersion);
     console.log(`Updated from ${details.previousVersion} to ${newVersion}`);
+    notifs.notifyUpdate("Corrige Pesquisa de Tópicos", newVersion, false);
   }
 
   if (details.previousVersion < "3.1.0") {
