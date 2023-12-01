@@ -1,5 +1,5 @@
 var hoje = new Date().setHours(0, 0, 0, 0);
-// https://www.googleapis.com/calendar/v3/calendars/cfc0289d736db3a530d663a2a3e70d7f2da313eaebfa9e76718338f09a6175ae@group.calendar.google.com/events?singleEvents=true&timeMin=2023-11-29T00:00:00Z&orderBy=startTime&alwaysIncludeEmail=false&showDeleted=false&maxResults=250&key=AIzaSyBJd7mhA4xaW0qPZDpuexEwG_yBYPX-VA0
+
 const APIKey = "AIzaSyBJd7mhA4xaW0qPZDpuexEwG_yBYPX-VA0";
 const diasSemana = [
   "Dom.",
