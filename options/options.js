@@ -28,6 +28,7 @@ function saveOptions() {
   };
 
   let newOtherPrefs = {
+    vegetariano: $("#vegetariano").is(":checked"),
     displayImages: $("#displayImages").is(":checked"),
     popupSensibility: parseInt($("#popupSensibility").val()),
     cleanDataOnLogout: $("#cleanDataOnLogout").is(":checked")
@@ -67,6 +68,7 @@ function restoreOptions() {
     $("#audioVolume").val(notifs.prefs.audioVolume * 100);
     $("#muteHourPeriod").val(notifs.prefs.muteHourPeriod);
 
+    $("#vegetariano").prop("checked", other.prefs.vegetariano);
     $("#displayImages").prop("checked", other.prefs.displayImages);
     $("#popupSensibility").val(other.prefs.popupSensibility);
     $("#cleanDataOnLogout").prop("checked", other.prefs.cleanDataOnLogout);
@@ -83,6 +85,7 @@ function displayMensagem(msg) {
 
 function refreshExtensionData() {
   chrome.runtime.sendMessage({ reload: true });
+  localStorage.removeItem("calendarioEmenta");
 }
 
 document.addEventListener("DOMContentLoaded", function() {

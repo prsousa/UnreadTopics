@@ -13,6 +13,7 @@ const diasSemana = [
 ];
 
 let ementaNormalID = "cfc0289d736db3a530d663a2a3e70d7f2da313eaebfa9e76718338f09a6175ae";
+let ementaVegetarianaID = "c0d56c91bf4cdf9fc7233d057124efeeae599e905f1397cc8394566a97216d23";
 
 function getProximasEmentas(onComplete) {
   var datasProx = getDataProximaEmenta();
@@ -62,46 +63,50 @@ function getDataProximaEmenta() {
 }
 
 function getEmentas(onComplete) {
-  var calendario = {};
+  chrome.runtime.sendMessage({ "get-vegetariano": true }, function(
+    isVegetariano
+  ) {
+    var calendario = {};
 
-  console.log("Actualizar Ementa");
+    var m = new Date(hoje);
+    var hojeTXT =
+      m.getFullYear() +
+      "-" +
+      ("0" + (m.getMonth() + 1)).slice(-2) +
+      "-" +
+      ("0" + m.getDate()).slice(-2); // YYYY-MM-DD
+    var opts =
+      "?singleEvents=true&timeMin=" +
+      hojeTXT +
+      "T00:00:00Z&orderBy=startTime&alwaysIncludeEmail=false&showDeleted=false&maxResults=250&key=" +
+      APIKey;
 
-  var m = new Date(hoje);
-  var hojeTXT =
-    m.getFullYear() +
-    "-" +
-    ("0" + (m.getMonth() + 1)).slice(-2) +
-    "-" +
-    ("0" + m.getDate()).slice(-2); // YYYY-MM-DD
-  var opts =
-    "?singleEvents=true&timeMin=" +
-    hojeTXT +
-    "T00:00:00Z&orderBy=startTime&alwaysIncludeEmail=false&showDeleted=false&maxResults=250&key=" +
-    APIKey;
-  var pagNormal =
-    "https://www.googleapis.com/calendar/v3/calendars/" +
-    ementaNormalID +
-    "@group.calendar.google.com/events" +
-    opts;
+    var selectedID = isVegetariano ? ementaVegetarianaID : ementaNormalID;
 
-  $.get(pagNormal, function(ementas) {
-    console.log("ementas");
-    $.each(ementas.items, function(i, comer) {
-      date = new Date(comer.start.dateTime);
-      if (date.getHours() == 12){
-        var ementa = comer.summary;
-        var dia = new Date(comer.start.dateTime).setHours(0, 0, 0, 0);
-        calendario[dia] = { almoco: ementa, jantar: "" };
-      } else {
-        var ementa = comer.summary;
-        var dia = new Date(comer.start.dateTime).setHours(0, 0, 0, 0);
-        if (calendario[dia]) {
-          calendario[dia].jantar = ementa;
+    var pagEmenta =
+      "https://www.googleapis.com/calendar/v3/calendars/" +
+      selectedID +
+      "@group.calendar.google.com/events" +
+      opts;
+    
+    $.get(pagEmenta, function(ementas) {
+      $.each(ementas.items, function(i, comer) {
+        date = new Date(comer.start.dateTime);
+        if (date.getHours() == 12){
+          var ementa = comer.summary;
+          var dia = new Date(comer.start.dateTime).setHours(0, 0, 0, 0);
+          calendario[dia] = { almoco: ementa, jantar: "" };
+        } else {
+          var ementa = comer.summary;
+          var dia = new Date(comer.start.dateTime).setHours(0, 0, 0, 0);
+          if (calendario[dia]) {
+            calendario[dia].jantar = ementa;
+          }
         }
-      }
-      calendario["data"] = new Date().getTime();
-      localStorage["calendarioEmenta"] = JSON.stringify(calendario);
-      onComplete();
+        calendario["data"] = new Date().getTime();
+        localStorage["calendarioEmenta"] = JSON.stringify(calendario);
+        onComplete();
+      });
     });
   });
 }

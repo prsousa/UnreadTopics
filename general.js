@@ -2,6 +2,7 @@
 
 var GeneralManager = GeneralManager || function () {
     this.prefs = {
+        vegetariano: false,
         popupSensibility: 500,
         displayImages: true,
         cleanDataOnLogout: false

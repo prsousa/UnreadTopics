@@ -235,6 +235,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       case "open-config-page":
         openConfigPage();
         break;
+      case "get-vegetariano":
+        sendResponse(other.prefs.vegetariano);
+        break; // OUT: vegetariano boolean
       case "get-popup-sensibility":
         sendResponse(other.prefs.popupSensibility);
         break; // OUT: popupSensibility (ms)
@@ -260,6 +263,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           });
         return true;
         break;
+      case "print-msg"://just for debugging
+        console.log(request[req]);
+        break; // IN: string
+      default:
+        console.log("Unknown Message Received", request);
     }
   }
 });
