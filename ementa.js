@@ -12,8 +12,7 @@ const diasSemana = [
   "Dom."
 ];
 
-let ementaAlmocoID = "5ttsisforihpn2o3blhe3s4tlo";
-let ementaJantarID = "uinm3kojaoe3llod88ma22o78s";
+let ementaNormalID = "cfc0289d736db3a530d663a2a3e70d7f2da313eaebfa9e76718338f09a6175ae";
 
 function getProximasEmentas(onComplete) {
   var datasProx = getDataProximaEmenta();
@@ -79,35 +78,27 @@ function getEmentas(onComplete) {
     hojeTXT +
     "T00:00:00Z&orderBy=startTime&alwaysIncludeEmail=false&showDeleted=false&maxResults=250&key=" +
     APIKey;
-  var pagAlmoco =
+  var pagNormal =
     "https://www.googleapis.com/calendar/v3/calendars/" +
-    ementaAlmocoID +
-    "@group.calendar.google.com/events" +
-    opts;
-  var pagJantar =
-    "https://www.googleapis.com/calendar/v3/calendars/" +
-    ementaJantarID +
+    ementaNormalID +
     "@group.calendar.google.com/events" +
     opts;
 
-  $.get(pagAlmoco, function(dataAlmoco) {
-    console.log("dataAlmoco");
-
-    $.each(dataAlmoco.items, function(i, almoco) {
-      var ementa = almoco.summary;
-      var dia = new Date(almoco.start.dateTime).setHours(0, 0, 0, 0);
-      calendario[dia] = { almoco: ementa, jantar: "" };
-    });
-
-    $.get(pagJantar, function(dataJantar) {
-      $.each(dataJantar.items, function(i, jantar) {
-        var ementa = jantar.summary;
-        var dia = new Date(jantar.start.dateTime).setHours(0, 0, 0, 0);
+  $.get(pagNormal, function(ementas) {
+    console.log("ementas");
+    $.each(ementas.items, function(i, comer) {
+      date = new Date(comer.start.dateTime);
+      if (date.getHours() == 12){
+        var ementa = comer.summary;
+        var dia = new Date(comer.start.dateTime).setHours(0, 0, 0, 0);
+        calendario[dia] = { almoco: ementa, jantar: "" };
+      } else {
+        var ementa = comer.summary;
+        var dia = new Date(comer.start.dateTime).setHours(0, 0, 0, 0);
         if (calendario[dia]) {
           calendario[dia].jantar = ementa;
         }
-      });
-
+      }
       calendario["data"] = new Date().getTime();
       localStorage["calendarioEmenta"] = JSON.stringify(calendario);
       onComplete();
