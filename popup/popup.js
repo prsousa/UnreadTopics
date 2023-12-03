@@ -226,7 +226,7 @@ function showEmenta() {
   clearTimeout(timerEmentas);
   var ementa = ementas[indexEmentaActual];
   toggleEverySeconds(
-    3,
+    5,
     { ementa: ementa.ementaA, momento: "almoço" },
     { ementa: ementa.ementaJ, momento: "jantar" }
   );
@@ -265,6 +265,7 @@ function showEmentas() {
   $("#ementa").show();
   getProximasEmentas(function(emnt) {
     ementas = emnt;
+    
     if (!ementas.length) {
       $("#ementaCont > span").html("<i>Sem Informação</i>");
       ementaArrowStates();
