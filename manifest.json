@@ -2,7 +2,7 @@
   "manifest_version": 2,
   "name": "Tópicos Por Ler Em Separadores",
   "short_name": "Tópicos por Ler",
-  "description": "Abre os tópicos por ler em diferentes separadores, notificações, pesquisas, ementa da UM e upload de imagens",
+  "description": "Abre os tópicos por ler em diferentes separadores, notificações, pesquisas, ementa da UM(normal e vegetariana) e upload de imagens",
   "version": "3.1.2",
   "commands": {
     "open-unread-topics": {
