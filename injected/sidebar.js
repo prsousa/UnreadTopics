@@ -263,7 +263,7 @@ function getBancoTopicosPorLer() {
 
     $("ul#topicosPorLer").html("");
     //console.log(topicos);
-    for (var i = 0; i < topicos.length; i++) {
+    for (var i = 0; i < totalTopicos; i++) {
       var linha =
         topicos[i].name +
         " <span class='autor'>" +
@@ -358,6 +358,7 @@ var ementas;
 $("<div id='ementa'></div>").appendTo("#menuTPLS");
 
 function displayEmentas() {
+  localStorage.removeItem("calendarioEmenta");
   getProximasEmentas(function(emnt) {
     ementas = emnt;
 
