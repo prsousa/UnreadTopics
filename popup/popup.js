@@ -106,7 +106,9 @@ function openUnreadTabs() {
           plural;
       }
     } else {
-      if (response.msg.indexOf("loggedout") !== -1) {
+      if (response.msg && 
+          typeof response.msg === "string" && 
+          response.msg.indexOf("loggedout") !== -1) {
         msg = "Sem Sessão Iniciada";
       } else {
         msg = "Ocorreu Um Erro";
