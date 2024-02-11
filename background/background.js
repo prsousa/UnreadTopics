@@ -66,7 +66,7 @@ function notifyUnreadTopics() {
 function openUnreadTopics() {
   return topics.fetchUnread().then(newTopics => {
     Analytics.addEvent("fetch-unread", "open-unread-topics", newTopics);
-    updateUnreadIn(30);
+    updateUnreadIn(notifs.prefs.updateNotificationMinutePeriod);
     let unreadTopics = topics.getLocalUnreadTopics();
     let unreadLinks = unreadTopics.map(topic => {
       return topic.link;
@@ -119,7 +119,7 @@ function updaterUnread() {
       if (newTopics) notifyUnreadTopics();
     });
   }).then(() => {
-    updateUnreadIn(30);
+    updateUnreadIn(notifs.prefs.updateNotificationMinutePeriod);
     return topics.save();
   });
 }
@@ -251,7 +251,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           .fetchUnread()
           .then(newTopics => {
             // OUT: indication of conclusion
-            updateUnreadIn(30);
+            updateUnreadIn(notifs.prefs.updateNotificationMinutePeriod);
             sendResponse({
               success: true,
               newTopics: newTopics

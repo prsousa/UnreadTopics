@@ -24,7 +24,8 @@ function saveOptions() {
   let newNotifsPrefs = {
     enabled: $("#notificationsEnabled").is(":checked"),
     audioVolume: $("#audioVolume").val() / 100.0,
-    muteHourPeriod: parseInt($("#muteHourPeriod").val())
+    muteHourPeriod: parseInt($("#muteHourPeriod").val()),
+    updateNotificationMinutePeriod: parseInt($("#updateNotificationMinutePeriod").val())
   };
 
   let newOtherPrefs = {
@@ -67,6 +68,7 @@ function restoreOptions() {
     $("#notificationsEnabled").prop("checked", notifs.prefs.enabled);
     $("#audioVolume").val(notifs.prefs.audioVolume * 100);
     $("#muteHourPeriod").val(notifs.prefs.muteHourPeriod);
+    $("#updateNotificationMinutePeriod").val(notifs.prefs.updateNotificationMinutePeriod);
 
     $("#vegetariano").prop("checked", other.prefs.vegetariano);
     $("#displayImages").prop("checked", other.prefs.displayImages);

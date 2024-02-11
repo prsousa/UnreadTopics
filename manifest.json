@@ -3,7 +3,7 @@
   "name": "Tópicos Por Ler Em Separadores",
   "short_name": "Tópicos por Ler",
   "description": "Abre os tópicos por ler em diferentes separadores, notificações, pesquisas, ementa da UM(normal e vegetariana) e upload de imagens",
-  "version": "3.1.2",
+  "version": "3.1.3",
   "commands": {
     "open-unread-topics": {
       "suggested_key": {
@@ -13,7 +13,7 @@
     },
     "open-forum": {
       "suggested_key": {
-        "default": "Alt+Shift+A"
+        "default": "Alt+L"
       },
       "description": "Open Forum"
     }

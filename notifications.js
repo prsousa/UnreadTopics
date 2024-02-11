@@ -4,7 +4,8 @@ var NotificationsManager = function () {
     this.prefs = {
         enabled: true,
         audioVolume: 0.5,
-        muteHourPeriod: 2
+        muteHourPeriod: 1,
+        updateNotificationMinutePeriod: 30
     };
 
     this.db = {
