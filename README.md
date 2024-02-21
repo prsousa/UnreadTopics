@@ -33,3 +33,28 @@ At lunchtime, the canteen menu can also be consulted.
 Paulo Sousa & ... & Tango Uniform
 
 Special thanks to the forum admins and to friends for advices and suggestions! :aqueleabraço:
+
+# Deployment
+
+This extension is not maintained anymore. Manifest is outdated so the extension is out of the Chrome Web Store.
+The extension can be manually installed by following the instructions below.
+
+## Download
+
+In the desired folder, clone the repository:
+```bash
+git clone https://github.com/prsousa/UnreadTopics
+``` 
+Or download the ZIP of the repository and extract it to the desired folder.
+
+## Add extension to Chrome
+
+1. Open Chrome and go to [chrome://extensions/](chrome://extensions/) 
+2. Enable `Developer mode` (usually on the top right corner)
+3. Click on `Load unpacked` and select the folder created when the repository was cloned
+4. The extension should be added to Chrome and the icon should appear on the extensions menu. To have the icon always visible, click on the pin icon next to the extension.
+
+## Configuration
+
+- It is possible to select the vegan option for the canteen menu. To do so, go to the settings page of the extension and check the box `Ementa Vegetariana`.
+- Explore the other settings and configure them as desired to have the best experience with the extension.
