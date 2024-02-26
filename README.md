@@ -58,3 +58,16 @@ Or download the ZIP of the repository and extract it to the desired folder.
 
 - It is possible to select the vegan option for the canteen menu. To do so, go to the settings page of the extension and check the box `Ementa Vegetariana`.
 - Explore the other settings and configure them as desired to have the best experience with the extension.
+
+# Menu
+It is possible to add the canteen calendar to your personal Google Calendar account. To do so, use the link to the [normal menu](https://calendar.google.com/calendar/u/0?cid=Y2ZjMDI4OWQ3MzZkYjNhNTMwZDY2M2EyYTNlNzBkN2YyZGEzMTNlYWViZmE5ZTc2NzE4MzM4ZjA5YTYxNzVhZUBncm91cC5jYWxlbmRhci5nb29nbGUuY29t) or to the [vegan menu](https://calendar.google.com/calendar/u/0?cid=YzBkNTZjOTFiZjRjZGY5ZmM3MjMzZDA1NzEyNGVmZWVhZTU5OWU5MDVmMTM5N2NjODM5NDU2NmE5NzIxNmQyM0Bncm91cC5jYWxlbmRhci5nb29nbGUuY29t)
+
+<!-- 
+
+Google calendar canteeen menu ID's:
+Normal: 
+cfc0289d736db3a530d663a2a3e70d7f2da313eaebfa9e76718338f09a6175ae
+Vegan:
+c0d56c91bf4cdf9fc7233d057124efeeae599e905f1397cc8394566a97216d23 
+
+-->
