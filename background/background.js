@@ -319,7 +319,9 @@ chrome.runtime.onInstalled.addListener(function(details) {
   if (details.previousVersion < newVersion) {
     Analytics.addEvent("extension-update", "request", newVersion);
     console.log(`Updated from ${details.previousVersion} to ${newVersion}`);
-    notifs.notifyUpdate("Corrige Pesquisa de Tópicos", newVersion, false);
+
+    const updateMessage = "Permite desligar notificações sem ter de abrir o popup (clicar com o botão direito no ícone)";
+    notifs.notifyUpdate(updateMessage, newVersion, false);
   }
 
   if (details.previousVersion < "3.1.0") {
@@ -336,5 +338,16 @@ chrome.runtime.onInstalled.addListener(function(details) {
       notifs.notifyUpdate("Clica aqui para as opções", newVersion, true);
       return loadData();
     });
+  }
+});
+
+// Right click on extension icon
+chrome.contextMenus.create({
+  "type":"normal",
+  "title":"Desligar Notificações",
+  "contexts":["browser_action"],
+  "onclick":function(info, tab) {
+    notifs.setEnabled(false);
+    notifs.save();
   }
 });
