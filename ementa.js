@@ -92,7 +92,7 @@ function getEmentas(onComplete) {
     $.get(pagEmenta, function(ementas) {
       $.each(ementas.items, function(i, comer) {
         date = new Date(comer.start.dateTime);
-        if (date.getHours() == 12){
+        if (date.getHours() <= 16){
           var ementa = comer.summary;
           var dia = new Date(comer.start.dateTime).setHours(0, 0, 0, 0);
           calendario[dia] = { almoco: ementa, jantar: "" };
