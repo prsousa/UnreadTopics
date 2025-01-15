@@ -11,7 +11,7 @@ function addImageTag(url) {
 
     var caretPos = textarea[0].selectionStart;
     var textAreaTxt = textarea.val();
-    var txtToAdd = "[img]" + url + "[/img]";
+    var txtToAdd = "[img]" + url + "[/img]\n";
 
     textarea.val(textAreaTxt.substring(0, caretPos) + txtToAdd + textAreaTxt.substring(caretPos));
 }
@@ -25,26 +25,48 @@ function fileDragHover(e) {
 function fileSelectHandler(e) {
     fileDragHover(e);
     var files = e.originalEvent.target.files || e.originalEvent.dataTransfer.files;
-    var file = files[0];
-    var xhr = new XMLHttpRequest();
+    // var file = files[0];
+    // var xhr = new XMLHttpRequest();
 
-    if (file.type !== "image/jpg" && file.type !== "image/jpeg" && file.type !== "image/png" && file.type !== "image/gif") {
-        alert("Por favor, envia apenas imagens JPG, PNG, ou GIF.");
-        return;
+    // if (file.type !== "image/jpg" && file.type !== "image/jpeg" && file.type !== "image/png" && file.type !== "image/gif") {
+    //     alert("Por favor, envia apenas imagens JPG, PNG, ou GIF.");
+    //     return;
+    // }
+
+    // console.log("Drag & Drop");
+
+    // upload(file, function(link) {
+    //     addImageTag(link);
+    // });
+
+    // fileinput.val(null);
+ 
+    var error = false;
+    for (var i = 0; i < files.length; i++) {
+        var file = files[i];
+        if (file.type !== "image/jpg" && file.type !== "image/jpeg" && file.type !== "image/png" && file.type !== "image/gif") {
+            error = true;
+        }
+        else{
+            console.log("Drag & Drop");
+
+            upload(file, function(link) {
+                addImageTag(link);
+            });
+        
+        }
     }
-
-    console.log("Drag & Drop");
-
-    upload(file, function(link) {
-        addImageTag(link);
-    });
-
+    
+    if (error) {
+        alert("Por favor, envia apenas imagens JPG, PNG, ou GIF. Um ou mais dos ficheiros foram ignorados.");
+    }
     fileinput.val(null);
+
 }
 
 function setUpload() {
     //title='Escolhe ou arrasta uma imagem para a introduzires no post'
-    $("<div id='upload' class='imgurBox'>Inserir Imagem</div><div id='uploading' class='imgurBox'>&nbsp;</div><input id='file-input' type='file' name='image' />").insertAfter(textarea);
+    $("<div id='upload' class='imgurBox'>Inserir Imagem</div><div id='uploading' class='imgurBox'>&nbsp;</div><input id='file-input' type='file' name='image' multiple/>").insertAfter(textarea);
 
     imgurUploadBox = $("#upload.imgurBox");
     imgurUploadingBox = $("#uploading.imgurBox");
