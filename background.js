@@ -255,11 +255,10 @@ chrome.commands.onCommand.addListener(command => {
 // Installation logic
 chrome.runtime.onInstalled.addListener(details => {
   const newVersion = chrome.runtime.getManifest().version;
-  const lastImprovments = chrome.runtime.getManifest().last_improvments;
 
   if (details.previousVersion < newVersion) {
     // Set update message to be displayed
-    const updateMessage = lastImprovments ? lastImprovments : `Extensão atualizada para a versão ${newVersion}`;
+    const updateMessage = "Migration to Manifest V3, refactoring some functionalities";
 
     notifs.notifyUpdate(updateMessage, newVersion, false);
   }
