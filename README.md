@@ -10,7 +10,7 @@ At lunchtime, the canteen menu can also be consulted.
 
 ## Features
 
-* Subscribe to new posts updates (GCM/FCM)
+<!-- * Subscribe to new posts updates (GCM/FCM) -->
 * Fetch and open unread topics
 	* Key shortcuts
 	* Sidebar injected on forum
@@ -21,7 +21,7 @@ At lunchtime, the canteen menu can also be consulted.
 * Sync/display canteen month menus
 
 ## Technologies & Libraries
-* Google/Firabase Cloud Messaging ([GCM](https://developers.google.com/cloud-messaging/chrome/client))
+<!-- * Google/Firabase Cloud Messaging ([GCM](https://developers.google.com/cloud-messaging/chrome/client)) -->
 * Simple Machines Forum ([SMF](http://www.simplemachines.org/))
 * [jQuery 2.1.1](https://jquery.com/)
 * [ES6 Promises](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)
@@ -61,6 +61,15 @@ Or download the ZIP of the repository and extract it to the desired folder.
 
 # Menu
 It is possible to add the canteen calendar to your personal Google Calendar account. To do so, use the link to the [normal menu](https://calendar.google.com/calendar/u/0?cid=Y2ZjMDI4OWQ3MzZkYjNhNTMwZDY2M2EyYTNlNzBkN2YyZGEzMTNlYWViZmE5ZTc2NzE4MzM4ZjA5YTYxNzVhZUBncm91cC5jYWxlbmRhci5nb29nbGUuY29t) or to the [vegan menu](https://calendar.google.com/calendar/u/0?cid=YzBkNTZjOTFiZjRjZGY5ZmM3MjMzZDA1NzEyNGVmZWVhZTU5OWU5MDVmMTM5N2NjODM5NDU2NmE5NzIxNmQyM0Bncm91cC5jYWxlbmRhci5nb29nbGUuY29t)
+
+# Shortcuts
+
+The extension has some keyboard shortcuts that can be configured in the browser shortcuts settings page. The default shortcuts are:
+* `Alt+A` - Fetch and Open Unread Topics
+* `Alt+L` - Open forum
+
+If you want to change the shortcuts or they are not working, go to the browser shortcuts page (eg. [brave://extensions/shortcuts](brave://extensions/shortcuts)) and configure them as desired.
+
 
 <!-- 
 

@@ -177,7 +177,8 @@ TopicsManager.prototype.fetchUnread = function() {
 
   let fetchPromise = Utils.ajax({
     url: this.prefs.forumURL + "?action=" + this.prefs.unreadOption,
-    timeout: 10 * 1000 // 10 second timeout
+    timeout: 10 * 1000, // 10 second timeout
+    dataType: "text"
   }).then(function(htmlData) {
     if (htmlData.indexOf("login") === -1 && htmlData.indexOf("logout") === -1) {
       return Promise.reject("server");

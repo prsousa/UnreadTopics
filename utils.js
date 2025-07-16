@@ -38,15 +38,56 @@ Utils.containsValues = function (array, values) {
 }
 
 /**
- * Converts jQuery's ajax returning promise to the ES6 promise standard
- * @param {Object} ajax options
- * @return {Promise} ES6 Promise of $.ajax
+ * Performs an AJAX request using native fetch API
+ * @param {Object} options - { url, method, headers, data, dataType }
+ * @return {Promise} ES6 Promise resolving to response data
  */
 Utils.ajax = function (options) {
-    return new Promise(function (resolve, reject) {
-        $.ajax(options).done(resolve).fail(reject);
+  const controller = new AbortController();
+  const signal = controller.signal;
+
+  const fetchOptions = {
+    method: options.method || 'GET',
+    headers: options.headers || {},
+    signal: signal
+  };
+
+  if (options.data) {
+    if (options.method === 'POST' || options.method === 'PUT') {
+      fetchOptions.body = typeof options.data === 'string'
+        ? options.data
+        : JSON.stringify(options.data);
+
+      if (!fetchOptions.headers['Content-Type']) {
+        fetchOptions.headers['Content-Type'] = 'application/json';
+      }
+    }
+  }
+
+  // Set up timeout
+  const timeout = options.timeout || 0;
+  let timeoutId;
+  if (timeout > 0) {
+    timeoutId = setTimeout(() => controller.abort(), timeout);
+  }
+
+  return fetch(options.url, fetchOptions)
+    .then(response => {
+      if (timeoutId) clearTimeout(timeoutId);
+      if (!response.ok) throw new Error(`HTTP error ${response.status}`);
+      if (options.dataType === 'json') return response.json();
+      if (options.dataType === 'text') return response.text();
+      return response;
+    })
+    .catch(error => {
+      if (error.name === 'AbortError') {
+        throw new Error('Request timed out');
+      }
+      throw error;
     });
-}
+};
+
+
 
 /**
  * Delays Promise resolvement

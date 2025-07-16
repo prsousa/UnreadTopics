@@ -18,15 +18,15 @@ function loadData() {
 }
 
 loadData().then(() => {
-  Analytics.trackPageView();
+  // Analytics.trackPageView();
   topics.setUnreadTopicsChangeListener(updateBadge);
   topics.setOnLoadingChangeListener(updateBadge);
   topics.setLoginStatusChangeListener(newStatus => {
-    console.log("Login Status Changed", newStatus);
+    console.log("Login Status Changed to: ", newStatus);
     updateBadge();
     if (newStatus) {
       updaterUnread();
-      updaterGCM();
+      // updaterGCM();
     } else if (other.prefs.cleanDataOnLogout) {
       topics.clear();
       topics.save();
@@ -35,7 +35,7 @@ loadData().then(() => {
 
   updateBadge();
   updaterUnread();
-  updaterGCM();
+  // updaterGCM();
 });
 
 function updateBadge() {
@@ -65,7 +65,6 @@ function notifyUnreadTopics() {
 
 function openUnreadTopics() {
   return topics.fetchUnread().then(newTopics => {
-    Analytics.addEvent("fetch-unread", "open-unread-topics", newTopics);
     updateUnreadIn(notifs.prefs.updateNotificationMinutePeriod);
     let unreadTopics = topics.getLocalUnreadTopics();
     let unreadLinks = unreadTopics.map(topic => {
@@ -82,40 +81,40 @@ function openConfigPage() {
   chrome.runtime.openOptionsPage();
 }
 
-function stopUpdater(clock) {
-  clearTimeout(clock);
-}
+// function stopUpdater(clock) {
+//   clearTimeout(clock);
+// }
 
-function updateGCMIn(minutes) {
-  stopUpdater(updaterClock.gcm);
-  updaterClock.gcm = setTimeout(updaterGCM, minutes * 60 * 1000);
-  console.log("Update 'GCM' in", minutes, "minutes", new Date());
-}
+// function updateGCMIn(minutes) {
+//   stopUpdater(updaterClock.gcm);
+//   updaterClock.gcm = setTimeout(updaterGCM, minutes * 60 * 1000);
+//   console.log("Update 'GCM' in", minutes, "minutes", new Date());
+// }
 
-function updaterGCM() {
-  if (topics.isLoggedIn()) {
-    Utils.doRetry(() => {
-      return GCMManager.register(topics.db.userId, "625116915699");
-    }).then(() => {
-      stopUpdater(updaterClock.gcm);
-      updateGCMIn(10);
-    });
-  }
-}
+// function updaterGCM() {
+//   if (topics.isLoggedIn()) {
+//     Utils.doRetry(() => {
+//       return GCMManager.register(topics.db.userId, "625116915699");
+//     }).then(() => {
+//       stopUpdater(updaterClock.gcm);
+//       updateGCMIn(10);
+//     });
+//   }
+// }
 
-function updateUnreadIn(minutes) {
-  stopUpdater(updaterClock.unread);
-  updaterClock.unread = setTimeout(updaterUnread, minutes * 60 * 1000);
-  console.log("Update 'Unread' in", minutes, "minutes", new Date());
-}
+// function updateUnreadIn(minutes) {
+//   // stopUpdater(updaterClock.unread);
+//   // updaterClock.unread = setTimeout(updaterUnread, minutes * 60 * 1000);
+//   console.log("Update 'Unread' in", minutes, "minutes", new Date());
+// }
 
 function updaterUnread() {
-  Analytics.addEvent("background-updater", "request", topics.db.userId);
+  // Analytics.addEvent("background-updater", "request", topics.db.userId);
   console.log("Updating", new Date());
 
   return Utils.doRetry(() => {
     return topics.fetchUnread().then(newTopics => {
-      Analytics.addEvent("fetch-unread", "background-updater", newTopics);
+      // Analytics.addEvent("fetch-unread", "background-updater", newTopics);
       if (newTopics) notifyUnreadTopics();
     });
   }).then(() => {
@@ -131,45 +130,45 @@ chrome.idle.onStateChanged.addListener(newIdleState => {
     updaterUnread().then(() => {
       currentIdleState = newIdleState;
     });
-    updaterGCM();
+    // updaterGCM();
   } else {
     currentIdleState = newIdleState;
 
-    if (newIdleState === "locked") {
-      stopUpdater(updaterClock.unread);
-    }
+    // if (newIdleState === "locked") {
+    //   // stopUpdater(updaterClock.unread);
+    // }
   }
 });
 
 // Receive push notifications from GCM/FCM
-chrome.gcm.onMessage.addListener(message => {
-  console.log(
-    "state when onMessage",
-    currentIdleState,
-    new Date().getTime(),
-    new Date()
-  );
-  if (!topics.isLoggedIn() || currentIdleState === "locked") return;
-  if (
-    message.data &&
-    message.data.topic &&
-    message.data.board &&
-    message.data.posterName
-  ) {
-    // console.log("Push Message Received:", message, new Date(), Date.now());
+// chrome.gcm.onMessage.addListener(message => {
+//   console.log(
+//     "state when onMessage",
+//     currentIdleState,
+//     new Date().getTime(),
+//     new Date()
+//   );
+//   if (!topics.isLoggedIn() || currentIdleState === "locked") return;
+//   if (
+//     message.data &&
+//     message.data.topic &&
+//     message.data.board &&
+//     message.data.posterName
+//   ) {
+//     // console.log("Push Message Received:", message, new Date(), Date.now());
 
-    if (topics.knownBoard(message.data.board)) {
-      if (topics.receiveValidPost(message.data)) {
-        notifyUnreadTopics();
-      }
-    } else {
-      // Unknown Board - what to do?
-      console.log("Unknown Board");
-    }
-  } else {
-    console.log("Unknown Message Received");
-  }
-});
+//     if (topics.knownBoard(message.data.board)) {
+//       if (topics.receiveValidPost(message.data)) {
+//         notifyUnreadTopics();
+//       }
+//     } else {
+//       // Unknown Board - what to do?
+//       console.log("Unknown Board");
+//     }
+//   } else {
+//     console.log("Unknown Message Received");
+//   }
+// });
 
 // Receive messages from tabs and other extensions
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -207,7 +206,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
               msg: err
             });
           });
-        return true;
         break;
       case "open-links":
         tabs.openLinks(request[req]);
@@ -242,11 +240,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         sendResponse(other.prefs.popupSensibility);
         break; // OUT: popupSensibility (ms)
       case "fetch-unread-topics":
-        Analytics.addEvent(
-          "fetch-unread",
-          "fetch-unread-topics",
-          topics.db.userId
-        );
+        // Analytics.addEvent(
+        //   "fetch-unread",
+        //   "fetch-unread-topics",
+        //   topics.db.userId
+        // );
         topics
           .fetchUnread()
           .then(newTopics => {
@@ -306,7 +304,7 @@ chrome.commands.onCommand.addListener(function(command) {
     case "open-unread-topics":
       openUnreadTopics();
       break;
-    case "open-forum":
+    case "open-forum-command":
       tabs.openLinks([topics.prefs.forumURL]);
       break;
   }
@@ -317,7 +315,7 @@ chrome.runtime.onInstalled.addListener(function(details) {
   let newVersion = chrome.runtime.getManifest().version;
 
   if (details.previousVersion < newVersion) {
-    Analytics.addEvent("extension-update", "request", newVersion);
+    // Analytics.addEvent("extension-update", "request", newVersion);
     console.log(`Updated from ${details.previousVersion} to ${newVersion}`);
 
     const updateMessage = "Permite desligar notificações sem ter de abrir o popup (clicar com o botão direito no ícone)";
@@ -334,7 +332,7 @@ chrome.runtime.onInstalled.addListener(function(details) {
         return container.save();
       })
     ).then(() => {
-      Analytics.addEvent("extension-update", "success", newVersion);
+      // Analytics.addEvent("extension-update", "success", newVersion);
       notifs.notifyUpdate("Clica aqui para as opções", newVersion, true);
       return loadData();
     });

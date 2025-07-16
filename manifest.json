@@ -1,17 +1,18 @@
 {
-  "manifest_version": 2,
-  "name": "Tópicos Por Ler Em Separadores",
-  "short_name": "Tópicos por Ler",
-  "description": "Abre os tópicos por ler em diferentes separadores, notificações, pesquisas, ementa da UM(normal e vegetariana) e upload de imagens",
-  "version": "3.1.5",
+  "manifest_version": 3,
+  "name": "T\u00f3picos Por Ler Em Separadores",
+  "short_name": "T\u00f3picos por Ler",
+  "description": "Abre os t\u00f3picos por ler em diferentes separadores, notifica\u00e7\u00f5es, pesquisas, ementa da UM(normal e vegetariana) e upload de imagens",
+  "version": "3.2.0",
+  "last_improvments": "Migration to Manifest V3, refactoring some functionalities",
   "commands": {
-    "open-unread-topics": {
+    "open-unread-topics-command": {
       "suggested_key": {
         "default": "Alt+A"
       },
       "description": "Fetch and Open Unread Topics"
     },
-    "open-forum": {
+    "open-forum-command": {
       "suggested_key": {
         "default": "Alt+L"
       },
@@ -25,23 +26,27 @@
     "256": "img/icon/icon_256.png",
     "512": "img/icon/icon.png"
   },
-  "browser_action": {
-    "default_icon": "img/icon/icon.png",
-    "default_popup": "popup/popup.html"
-  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "img/updateNotification.png",
+        "img/unreadNotification.png",
+        "img/postpone.png"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ],
   "permissions": [
-    "http://*/*",
-    "https://*/*",
     "tabs",
     "notifications",
     "storage",
-    "gcm",
     "idle",
-    "contextMenus"
+    "contextMenus",
+    "alarms",
+    "offscreen"
   ],
   "background": {
-    "persistent": true,
-    "page": "background/background.html"
+    "service_worker": "background.js"
   },
   "options_page": "options/options.html",
   "content_scripts": [
@@ -61,5 +66,15 @@
       ]
     }
   ],
-  "content_security_policy": "script-src 'self' https://ssl.google-analytics.com; object-src 'self'"
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
+  "action": {
+    "default_icon": "img/icon/icon.png",
+    "default_popup": "popup/popup.html"
+  },
+  "host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ]
 }

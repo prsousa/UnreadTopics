@@ -262,7 +262,6 @@ function getBancoTopicosPorLer() {
     totalTopicos = topicos.length;
 
     $("ul#topicosPorLer").html("");
-    //console.log(topicos);
     for (var i = 0; i < totalTopicos; i++) {
       var linha =
         topicos[i].name +

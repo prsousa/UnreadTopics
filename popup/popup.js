@@ -1,17 +1,15 @@
-$(document).ready(function() {
-  Analytics.trackPageView();
+$(document).ready(function () {
 
   abreMenu();
-  chrome.runtime.sendMessage({ "get-popup-sensibility": true }, function(
+  chrome.runtime.sendMessage({ "get-popup-sensibility": true }, function (
     sensibility
   ) {
     startProgress(sensibility || 400, () => {
-      Analytics.addEvent("popup", "open-unread-topics", "progress-bar");
       openUnreadTabs();
     });
   });
   $("#filtro").focus();
-  $("#filtro").on("search keyup", function(event) {
+  $("#filtro").on("search keyup", function (event) {
     $("#progress").stop();
 
     var searchedString = $(this).val();
@@ -22,11 +20,11 @@ $(document).ready(function() {
     );
   });
 
-  $("#search").click(function() {
+  $("#search").click(function () {
     pesquisaForum($("#filtro").val());
   });
 
-  $(".popupContainer").mouseover(function() {
+  $(".popupContainer").mouseover(function () {
     $("#progress").stop();
   });
 
@@ -38,7 +36,7 @@ function filter(value, container) {
     $(container).slideDown("fast");
     $("#webAppButtons").hide();
 
-    chrome.runtime.sendMessage({ "search-topics": value }, function(
+    chrome.runtime.sendMessage({ "search-topics": value }, function (
       topicosPotenciais
     ) {
       $(container).html("");
@@ -87,13 +85,15 @@ function openUnreadTabs() {
     .html("<hr />")
     .prepend("A Carregar...");
 
-  chrome.runtime.sendMessage({ "open-unread-topics": true }, function(
+  chrome.runtime.sendMessage({ "open-unread-topics": true }, function (
     response
   ) {
     if (!response) return;
 
+    chrome.runtime.sendMessage( {"print-msg": response});
+
     let msg = "";
-    if (response.success) {
+    if (response.success && response.unreadTopics.length >= 0) {
       if (response.unreadTopics.length === 0) {
         msg = "Tópicos Todos Lidos";
       } else {
@@ -106,12 +106,12 @@ function openUnreadTabs() {
           plural;
       }
     } else {
-      if (response.msg && 
-          typeof response.msg === "string" && 
+      if (response.msg &&
+          typeof response.msg === "string" &&
           response.msg.indexOf("loggedout") !== -1) {
         msg = "Sem Sessão Iniciada";
       } else {
-        msg = "Ocorreu Um Erro";
+        msg = "Ocorreu Um Erro: " + (response.msg || "Desconhecido");
         console.log(response.msg);
       }
     }
@@ -131,7 +131,6 @@ function abreMenu() {
   });
 
   $("#topicosLer").click(() => {
-    Analytics.addEvent("popup", "open-unread-topics", "button");
     openUnreadTabs();
   });
   $("#notifications").click(toggleNofiticationState);
@@ -170,7 +169,7 @@ function updatePostponedCountdown() {
 
 function setIconNotifications() {
   $("#notificationsDisabledIcon, #postponedCountdown").hide();
-  chrome.runtime.sendMessage({ "get-notifications-state": true }, function(
+  chrome.runtime.sendMessage({ "get-notifications-state": true }, function (
     notificationsState
   ) {
     currentNotificationState = notificationsState;
@@ -252,11 +251,11 @@ function ementaArrowStates() {
 
 function showEmentas() {
   $("#ementa")
-    .mouseover(function() {
+    .mouseover(function () {
       $("#ementa #iconEmenta").hide();
       $("#ementa #controladoresEmenta").show();
     })
-    .mouseout(function() {
+    .mouseout(function () {
       $("#ementa #iconEmenta").show();
       $("#ementa #controladoresEmenta").hide();
     });
@@ -265,7 +264,7 @@ function showEmentas() {
   $("#ementaCont > span").html("<i>A Carregar...</i>");
   $("#dataCont, #momentoCont").text("-");
   $("#ementa").show();
-  getProximasEmentas(function(emnt) {
+  getProximasEmentas(function (emnt) {
     ementas = emnt;
     
     if (!ementas.length) {
@@ -287,7 +286,7 @@ function showEmentas() {
 }
 
 function toggleEverySeconds(segs, a, b) {
-  $("#ementaCont > span").fadeOut(300, function() {
+  $("#ementaCont > span").fadeOut(300, function () {
     $(this).text(a.ementa);
     $(this).attr("title", a.ementa);
     $(this).fadeIn(200);
