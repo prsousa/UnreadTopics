@@ -35,7 +35,7 @@ jQuery.extend(jQuery.easing, {
 });
 
 function isURIImage(uri) {
-  return uri.match(/\.(jpg|gif|png|webm|gifv|jpg)$/) != null;
+  return uri.match(/\.(jpg|JPG|gif|GIF|png|PNG|webm|WEBM|gifv|GIFV|jpeg|JPEG)$/) != null;
 }
 
 function displayPictures() {
