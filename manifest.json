@@ -55,12 +55,16 @@
       ],
       "css": [
         "injected/css/sidebar.css",
-        "injected/css/uploadImgur.css"
+        "injected/css/uploadImgur.css",
+        "injected/css/quickQuote.css"
       ],
       "js": [
         "libs/jquery-2.1.1.min.js",
+        "libs/heic2any.min.js",
+        "injected/heic-handler.js",
         "ementa.js",
         "injected/sidebar.js",
+        "injected/quickQuote.js",
         "injected/uploadImgur.js"
       ]
     }

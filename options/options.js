@@ -31,6 +31,7 @@ function saveOptions() {
   let newOtherPrefs = {
     vegetariano: $("#vegetariano").is(":checked"),
     displayImages: $("#displayImages").is(":checked"),
+    postReplySplitLayout: $("#postReplySplitLayout").val(),
     popupSensibility: parseInt($("#popupSensibility").val()),
     cleanDataOnLogout: $("#cleanDataOnLogout").is(":checked")
   };
@@ -72,6 +73,7 @@ function restoreOptions() {
 
     $("#vegetariano").prop("checked", other.prefs.vegetariano);
     $("#displayImages").prop("checked", other.prefs.displayImages);
+    $("#postReplySplitLayout").val(other.prefs.postReplySplitLayout || "0");
     $("#popupSensibility").val(other.prefs.popupSensibility);
     $("#cleanDataOnLogout").prop("checked", other.prefs.cleanDataOnLogout);
   });

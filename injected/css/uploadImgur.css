@@ -35,3 +35,49 @@
 #file-input {
     display: none;
 }
+
+#post-reply-layout-toggle {
+    float: right;
+    margin: -2px 0 0 10px;
+}
+
+#post-reply-layout-toggle.active {
+    font-weight: bold;
+}
+
+#postmodify.post-reply-split-preparing #preview_section,
+#postmodify.post-reply-split-preparing textarea#message {
+    visibility: hidden;
+}
+
+#post-reply-split-layout {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    clear: both;
+}
+
+.post-reply-split-pane {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+#post-reply-split-layout #preview_section {
+    display: block !important;
+}
+
+#post-reply-split-layout #preview_section .windowbg,
+#post-reply-split-layout #post-reply-editor-pane > div {
+    box-sizing: border-box;
+}
+
+#post-reply-split-layout textarea#message,
+#post-reply-split-layout .rich_editor_frame {
+    max-width: 100%;
+}
+
+@media (max-width: 900px) {
+    #post-reply-split-layout {
+        display: block;
+    }
+}

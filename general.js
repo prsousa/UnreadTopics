@@ -5,7 +5,8 @@ var GeneralManager = GeneralManager || function () {
         vegetariano: false,
         popupSensibility: 500,
         displayImages: true,
-        cleanDataOnLogout: false
+        cleanDataOnLogout: false,
+        postReplySplitLayout: "0" // "0" for normal, "1" for side-by-side
     }
 }
 
