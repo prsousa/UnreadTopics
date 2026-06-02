@@ -23,6 +23,8 @@
     let postAuthor = "";
     let postMsgId = ""; // Guardará o ID da mensagem para criar a hiperligação original
     let postDate = ""; // Guardará o timestamp do post original
+    let currentRange = null; // Guardará o Range da seleção ativa
+    let currentParentPost = null; // Guardará o $parentPost ativo
 
     // Inicialização do módulo quando a página estiver pronta
     $(document).ready(function () {
@@ -113,6 +115,10 @@
             postMsgId = postDetails.msgId;
             postDate = postDetails.date;
 
+            // Encontra todos os blockquotes pais entre o nó selecionado e o post principal
+            currentRange = selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
+            currentParentPost = $parentPost;
+
             // Posiciona e exibe o balão flutuante
             showBubble(selection);
         }, 10);
@@ -127,12 +133,12 @@
 
         // Remove caracteres de formatação e limpa o texto
         // Ex: "« em: Junho 02, 2026, 00:17:19 »" -> "Junho 02, 2026, 00:17:19"
-        let cleanText = dateText.replace(/[«»]/g, "").replace(/em:|on:/gi, "").trim();
+        let cleanText = dateText.replace(/[«»]/g, "").replace(/\b(em|on):?/gi, "").trim();
         const now = new Date();
 
         // Caso A: "Hoje às 00:17" ou "Today at 10:37"
         if (cleanText.toLowerCase().includes("hoje") || cleanText.toLowerCase().includes("today")) {
-            const timeMatch = /(\d{2}):(\d{2})(?::(\d{2}))?/.exec(cleanText);
+            const timeMatch = /(\d{1,2}):(\d{2})(?::(\d{2}))?/.exec(cleanText);
             if (timeMatch) {
                 const seg = timeMatch[3] ? parseInt(timeMatch[3]) : 0;
                 now.setHours(parseInt(timeMatch[1]), parseInt(timeMatch[2]), seg, 0);
@@ -142,7 +148,7 @@
 
         // Caso B: "Ontem às 23:15" ou "Yesterday at 10:37"
         if (cleanText.toLowerCase().includes("ontem") || cleanText.toLowerCase().includes("yesterday")) {
-            const timeMatch = /(\d{2}):(\d{2})(?::(\d{2}))?/.exec(cleanText);
+            const timeMatch = /(\d{1,2}):(\d{2})(?::(\d{2}))?/.exec(cleanText);
             if (timeMatch) {
                 const seg = timeMatch[3] ? parseInt(timeMatch[3]) : 0;
                 const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
@@ -155,7 +161,7 @@
         const meses = {
             "janeiro": 0, "jan": 0, "january": 0,
             "fevereiro": 1, "fev": 1, "february": 1, "feb": 1,
-            "março": 2, "mar": 2, "march": 2,
+            "março": 2, "marco": 2, "mar": 2, "march": 2,
             "abril": 3, "abr": 3, "april": 3, "apr": 3,
             "maio": 4, "mai": 4, "may": 4,
             "junho": 5, "jun": 5, "june": 5,
@@ -169,7 +175,7 @@
 
         // Caso C: "2 de Junho de 2026, 00:17" ou "2 de Junho de 2026 às 00:17:19"
         // Suporta separadores flexíveis como espaços, vírgulas, "às" ou "at"
-        const matchPT1 = /(\d+)\s+de\s+(\S+)\s+de\s+(\d{4})(?:[\s,]+|[\s,]*às[\s,]*|[\s,]*at[\s]*)(\d{2}):(\d{2})(?::(\d{2}))?/.exec(cleanText);
+        const matchPT1 = /(\d{1,2})\s+de\s+(\S+)\s+de\s+(\d{4}).*?(\d{1,2}):(\d{2})(?::(\d{2}))?/.exec(cleanText);
         if (matchPT1) {
             const dia = parseInt(matchPT1[1]);
             const mesText = matchPT1[2].toLowerCase();
@@ -183,8 +189,23 @@
             return Math.floor(parsedDate.getTime() / 1000).toString();
         }
 
+        // Caso F: "20 May 2026, 20:44:43" (Formato de data em inglês standard do SMF)
+        const matchPT3 = /(\d{1,2})\s+(\S+)\s+(\d{4}).*?(\d{1,2}):(\d{2})(?::(\d{2}))?/.exec(cleanText);
+        if (matchPT3) {
+            const dia = parseInt(matchPT3[1]);
+            const mesText = matchPT3[2].toLowerCase();
+            const ano = parseInt(matchPT3[3]);
+            const hora = parseInt(matchPT3[4]);
+            const min = parseInt(matchPT3[5]);
+            const seg = matchPT3[6] ? parseInt(matchPT3[6]) : 0;
+
+            const mesIndex = meses[mesText] !== undefined ? meses[mesText] : now.getMonth();
+            const parsedDate = new Date(ano, mesIndex, dia, hora, min, seg);
+            return Math.floor(parsedDate.getTime() / 1000).toString();
+        }
+
         // Caso D: "Junho 02, 2026, 00:17" ou "Junho 02, 2026 às 00:17:19"
-        const matchPT2 = /(\S+)\s+(\d+),\s+(\d{4})(?:[\s,]+|[\s,]*às[\s,]*|[\s,]*at[\s]*)(\d{2}):(\d{2})(?::(\d{2}))?/.exec(cleanText);
+        const matchPT2 = /(\S+)\s+(\d{1,2}),\s+(\d{4}).*?(\d{1,2}):(\d{2})(?::(\d{2}))?/.exec(cleanText);
         if (matchPT2) {
             const mesText = matchPT2[1].toLowerCase();
             const dia = parseInt(matchPT2[2]);
@@ -199,7 +220,7 @@
         }
 
         // Caso E: "02/06/2026 00:17" ou "02-06-2026 00:17:19"
-        const matchNumeric = /(\d{2})[\/\-.](\d{2})[\/\-.](\d{4})(?:[\s,]+|[\s,]*às[\s,]*|[\s,]*at[\s]*)(\d{2}):(\d{2})(?::(\d{2}))?/.exec(cleanText);
+        const matchNumeric = /(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4}).*?(\d{1,2}):(\d{2})(?::(\d{2}))?/.exec(cleanText);
         if (matchNumeric) {
             const dia = parseInt(matchNumeric[1]);
             const mesIndex = parseInt(matchNumeric[2]) - 1;
@@ -215,6 +236,19 @@
         // Se falhar a conversão de formato, retorna vazio para que o BBCode não use uma data falsa
         console.warn("[QuickQuote] Não foi possível converter o formato da data:", cleanText);
         return "";
+    }
+
+    const monthRegex = /(janeiro|fevereiro|março|marco|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro|jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez|january|february|march|april|may|june|july|august|september|october|november|december|feb|apr|jun|jul|aug|sep|oct|nov|dec)/i;
+
+    /**
+     * Auxiliar para verificar se um determinado texto é uma data legível por humanos.
+     */
+    function isDateText(text) {
+        if (!/\b\d{1,2}:\d{2}/.test(text)) return false;
+        return monthRegex.test(text) || 
+               /\b(20|19)\d{2}\b/.test(text) || 
+               /(hoje|ontem|today|yesterday)/i.test(text) || 
+               /\b\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4}\b/.test(text);
     }
 
     /**
@@ -303,15 +337,17 @@
         let rawDate = "";
 
         // Método A: Procurar diretamente no bloco .keyinfo por texto entre parênteses angulares « e »
-        // Este é o método mais limpo em SMF pois o cabeçalho agrupa sempre o assunto e a data juntos
         const $keyinfo = $wrapper.find(".keyinfo").first();
         if ($keyinfo.length > 0) {
             const keyinfoText = $keyinfo.text();
             const startIdx = keyinfoText.indexOf("«");
             const endIdx = keyinfoText.indexOf("»");
             if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
-                rawDate = keyinfoText.substring(startIdx, endIdx + 1).trim();
-                console.log("[QuickQuote] Data extraída via Método A (.keyinfo):", rawDate);
+                const candidate = keyinfoText.substring(startIdx, endIdx + 1).trim();
+                if (isDateText(candidate)) {
+                    rawDate = candidate;
+                    console.log("[QuickQuote] Data extraída via Método A (.keyinfo):", rawDate);
+                }
             }
         }
 
@@ -320,10 +356,7 @@
             const $allChildElements = $wrapper.find(".smalltext, td.smalltext, td, div, span, *");
             $allChildElements.each(function () {
                 const text = $(this).text().trim();
-                const hasDateMarkers = text.includes("«") || text.includes("em:") || text.includes("on:") || text.includes("Hoje") || text.includes("Ontem") || text.includes("Today") || text.includes("Yesterday");
-                
-                // Garante que o texto é relativamente curto (para não apanhar o post inteiro)
-                if (hasDateMarkers && text.length < 100) {
+                if (text.length < 100 && isDateText(text)) {
                     rawDate = text;
                     console.log("[QuickQuote] Data extraída via Método B (Varredura):", rawDate);
                     return false; // Termina o loop .each
@@ -339,6 +372,89 @@
             msgId: msgId,
             date: dateTimestamp
         };
+    }
+
+    /**
+     * Extrai os detalhes do cabeçalho de uma citação (blockquote), como o autor, link e data.
+     */
+    function extractQuoteHeaderDetails(blockquote) {
+        // Encontra o cabeçalho de citação imediatamente anterior ou o mais próximo possível
+        let $header = $(blockquote).prev(".quoteheader");
+        if ($header.length === 0) {
+            $header = $(blockquote).prevAll(".quoteheader").first();
+        }
+        if ($header.length === 0) {
+            return { author: "", msgId: "", date: "", topicId: "" };
+        }
+
+        const $link = $header.find("a").first();
+        const href = $link.length > 0 ? $link.attr("href") || "" : "";
+        const text = $header.text().trim();
+
+        let author = "";
+        let rawDate = "";
+        let msgId = "";
+        let topicId = "";
+
+        // Tenta extrair ID do tópico e ID da mensagem a partir da ligação
+        if (href) {
+            const topicMatch = /topic=(\d+)/.exec(href);
+            if (topicMatch) {
+                topicId = topicMatch[1];
+            }
+            const msgMatch = /msg=(\d+)/.exec(href);
+            if (msgMatch) {
+                msgId = msgMatch[1];
+            } else {
+                const msgMatch2 = /\.msg(\d+)/.exec(href);
+                if (msgMatch2) {
+                    msgId = msgMatch2[1];
+                }
+            }
+        }
+
+        // Tenta extrair o autor e a data de forma robusta e independente da tradução do fórum
+        const cleanText = text.replace(/^(?:Citação de:?|Quote from:?)\s*/i, "").trim();
+        const dateMatch = /(Hoje|Ontem|Today|Yesterday|\d{1,2}\s+de\s+\S+|\d{1,2}\s+\S+\s+\d{4}|\d{1,2}[\/\-.]\d{1,2}|\S+\s+\d{1,2},\s+\d{4})/i.exec(cleanText);
+
+        if (dateMatch) {
+            author = cleanText.substring(0, dateMatch.index).trim();
+            // Remove espaços, traços e dois pontos residuais
+            author = author.replace(/[\s\-,:]+$/, "").trim();
+            // Remove palavras de ligação de fim de linha (ex: "em", "on", "de", "en", "le")
+            author = author.replace(/\b(?:em|on|at|in|de|en|le)$/i, "").trim();
+            // Remove novamente quaisquer dois pontos/dashes que fiquem visíveis
+            author = author.replace(/[\s\-,:]+$/, "").trim();
+
+            rawDate = cleanText.substring(dateMatch.index).trim();
+        } else {
+            author = cleanText;
+        }
+
+        const dateTimestamp = rawDate ? parseSMFDate(rawDate) : "";
+
+        return {
+            author: author,
+            msgId: msgId,
+            date: dateTimestamp,
+            topicId: topicId
+        };
+    }
+
+    /**
+     * Constrói o BBCode de uma citação simples com base nos detalhes fornecidos.
+     */
+    function buildQuoteBBCode(content, author, topicId, msgId, date, isInnermost) {
+        const innerContent = isInnermost ? `${content}\n` : content;
+        if (author && topicId && msgId && date) {
+            return `[quote author=${author} link=topic=${topicId}.msg${msgId}#msg${msgId} date=${date}]${innerContent}[/quote]\n`;
+        } else if (author && topicId && msgId) {
+            return `[quote author=${author} link=topic=${topicId}.msg${msgId}#msg${msgId}]${innerContent}[/quote]\n`;
+        } else if (author) {
+            return `[quote author=${author}]${innerContent}[/quote]\n`;
+        } else {
+            return `[quote]${innerContent}[/quote]\n`;
+        }
     }
 
     /**
@@ -398,28 +514,109 @@
      * para a página de resposta completa com a citação em memória.
      */
     function insertQuote() {
-        if (!selectedText) return;
+        if (!selectedText || !currentRange || !currentParentPost) return;
 
         // Extrai o ID do tópico a partir do URL atual
         const topicMatch = /topic=(\d+)/.exec(window.location.href);
         const topicId = topicMatch ? topicMatch[1] : null;
 
-        // Formata a citação em BBCode (adiciona autor, ligação e data se detetados)
-        let quoteBBCode = "";
-        
-        if (postAuthor && topicId && postMsgId && postDate) {
-            // Formato 100% idêntico ao nativo do SMF
-            quoteBBCode = `[quote author=${postAuthor} link=topic=${topicId}.msg${postMsgId}#msg${postMsgId} date=${postDate}]${selectedText}\n[/quote]\n`;
-        } else if (postAuthor && topicId && postMsgId) {
-            // Fallback sem data
-            quoteBBCode = `[quote author=${postAuthor} link=topic=${topicId}.msg${postMsgId}#msg${postMsgId}]${selectedText}\n[/quote]\n`;
-        } else if (postAuthor) {
-            // Fallback apenas com autor se faltar o ID da mensagem
-            quoteBBCode = `[quote author=${postAuthor}]${selectedText}\n[/quote]\n`;
-        } else {
-            // Fallback básico
-            quoteBBCode = `[quote]${selectedText}\n[/quote]\n`;
+        // 1. Anota todos os blockquotes no post original com seus dados para podermos ler após o clone
+        currentParentPost.find("blockquote").each(function () {
+            const details = extractQuoteHeaderDetails(this);
+            this.setAttribute("data-quote-author", details.author || "");
+            this.setAttribute("data-quote-msgid", details.msgId || "");
+            this.setAttribute("data-quote-date", details.date || "");
+            this.setAttribute("data-quote-topicid", details.topicId || "");
+        });
+
+        // 2. Clona o conteúdo do range e serializa para BBCode recursivamente
+        const fragment = currentRange.cloneContents();
+        let hasWrappedQuote = false;
+
+        function serializeToBBCode(node) {
+            if (node.nodeType === Node.TEXT_NODE) {
+                return node.nodeValue;
+            }
+
+            if (node.nodeType === Node.ELEMENT_NODE) {
+                const $el = $(node);
+
+                // Ignora cabeçalhos e rodapés de citação
+                if ($el.hasClass("quoteheader") || $el.hasClass("quotefooter") || 
+                    $el.hasClass("topslice_quote") || $el.hasClass("botslice_quote")) {
+                    return "";
+                }
+
+                if (node.tagName === "BR") {
+                    return "\n";
+                }
+
+                if (node.tagName === "BLOCKQUOTE") {
+                    hasWrappedQuote = true;
+                    const author = node.getAttribute("data-quote-author") || "";
+                    const msgId = node.getAttribute("data-quote-msgid") || "";
+                    const date = node.getAttribute("data-quote-date") || "";
+                    const bqTopicId = node.getAttribute("data-quote-topicid") || "";
+
+                    let innerText = "";
+                    node.childNodes.forEach(child => {
+                        innerText += serializeToBBCode(child);
+                    });
+
+                    return buildQuoteBBCode(innerText.trim(), author, bqTopicId, msgId, date, true);
+                }
+
+                let result = "";
+                node.childNodes.forEach(child => {
+                    result += serializeToBBCode(child);
+                });
+                return result;
+            }
+
+            if (node.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+                let result = "";
+                node.childNodes.forEach(child => {
+                    result += serializeToBBCode(child);
+                });
+                return result;
+            }
+
+            return "";
         }
+
+        let serializedBBCode = serializeToBBCode(fragment);
+
+        // Limpa os atributos temporários do DOM original
+        currentParentPost.find("blockquote").each(function () {
+            this.removeAttribute("data-quote-author");
+            this.removeAttribute("data-quote-msgid");
+            this.removeAttribute("data-quote-date");
+            this.removeAttribute("data-quote-topicid");
+        });
+
+        // 3. Encontra todos os blockquotes que contêm toda a seleção no DOM original
+        const commonBlockquotes = [];
+        let $curr = $(currentRange.commonAncestorContainer);
+        while ($curr.length > 0 && !$curr.is(currentParentPost)) {
+            if ($curr.is("blockquote")) {
+                commonBlockquotes.push($curr[0]);
+            }
+            $curr = $curr.parent();
+        }
+
+        // 4. Embrulha o BBCode serializado nos blockquotes comuns (do mais interno para o mais externo)
+        let finalBBCode = serializedBBCode;
+        for (let i = 0; i < commonBlockquotes.length; i++) {
+            const bq = commonBlockquotes[i];
+            const bqDetails = extractQuoteHeaderDetails(bq);
+            const bqTopicId = bqDetails.topicId || topicId;
+            const isBqInnermost = (i === 0 && !hasWrappedQuote);
+            finalBBCode = buildQuoteBBCode(finalBBCode, bqDetails.author, bqTopicId, bqDetails.msgId, bqDetails.date, isBqInnermost);
+        }
+
+        // 5. Embrulha no quote do post principal (mais externo)
+        const isPostInnermost = (!hasWrappedQuote && commonBlockquotes.length === 0);
+        let quoteBBCode = buildQuoteBBCode(finalBBCode, postAuthor, topicId, postMsgId, postDate, isPostInnermost);
 
         // Procura a caixa de texto ativa no SMF 2.0.19
         const $textarea = $("textarea#message, .quickReplyContent > textarea");

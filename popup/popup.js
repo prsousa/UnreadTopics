@@ -24,9 +24,7 @@ $(document).ready(function () {
     pesquisaForum($("#filtro").val());
   });
 
-  $(".popupContainer").mouseover(function () {
-    $("#progress").stop();
-  });
+
 
   showEmentas();
 });

@@ -162,6 +162,7 @@ hr {
     text-overflow: ellipsis;
     /* white-space: nowrap; */
     width: 165px;
+    height: 75px;
     display: -webkit-box;
     -webkit-line-clamp: 5;
     -webkit-box-orient: vertical;

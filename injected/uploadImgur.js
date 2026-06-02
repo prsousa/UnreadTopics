@@ -345,11 +345,20 @@ function upload(file, callback) {
     var xhr = new XMLHttpRequest();
     xhr.open("POST", "https://api.imgur.com/3/upload.json");
     xhr.setRequestHeader('Authorization', 'Client-ID 002bfa2da87f604');
+    xhr.timeout = 25000; // 25 seconds timeout
+
+    xhr.ontimeout = function() {
+        alert("O upload da imagem falhou: limite de tempo excedido.");
+    };
+
+    xhr.onerror = function() {
+        alert("O upload da imagem falhou: erro de rede.");
+    };
 
     xhr.onloadend = function() {
         if (xhr.status === 200) {
             callback(JSON.parse(xhr.responseText).data.link);
-        } else {
+        } else if (xhr.status !== 0) {
             console.log(xhr);
             alert("Ocorreu um erro durante o upload da imagem (" + xhr.status + ")");
         }

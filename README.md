@@ -26,6 +26,7 @@ At lunchtime, the canteen menu can also be consulted.
 * [jQuery 2.1.1](https://jquery.com/)
 * [ES6 Promises](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)
 * [chrome-promise](https://github.com/tfoxy/chrome-promise)
+* [heic2any](https://github.com/alexcorvi/heic2any)
 
 
 ## Author
