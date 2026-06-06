@@ -212,10 +212,10 @@ function setUpload() {
     imgurUploadingBox = $("#uploading.imgurBox");
     fileinput = $("input#file-input");
 
-    imgurUploadBox.bind("dragover", fileDragHover);
-    imgurUploadBox.bind("dragleave", fileDragHover);
-    imgurUploadBox.bind("drop", fileSelectHandler);
-    fileinput.bind("change", fileSelectHandler);
+    imgurUploadBox.on("dragover", fileDragHover);
+    imgurUploadBox.on("dragleave", fileDragHover);
+    imgurUploadBox.on("drop", fileSelectHandler);
+    fileinput.on("change", fileSelectHandler);
 
     imgurUploadBox.click(function(e) {
         e.preventDefault();

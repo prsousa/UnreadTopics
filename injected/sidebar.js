@@ -318,7 +318,7 @@ function filter(by, container) {
 
 function htmlRowTopico(nomeTopico, idTopico) {
   return (
-    '<a href="http://www.lei-uminho.com/forum/?topic=' +
+    '<a href="https://www.lei-uminho.com/forum/?topic=' +
     idTopico +
     '.msg9999999#new" title="' +
     nomeTopico +
@@ -400,3 +400,4 @@ function displayEmenta(offset) {
 
   //$("#ementa").html(infoString);
 }
+

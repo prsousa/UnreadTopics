@@ -59,7 +59,7 @@
         "injected/css/quickQuote.css"
       ],
       "js": [
-        "libs/jquery-2.1.1.min.js",
+        "libs/jquery-3.7.1.min.js",
         "libs/heic2any.min.js",
         "injected/heic-handler.js",
         "ementa.js",
@@ -76,8 +76,7 @@
     "default_icon": "img/icon/icon.png",
     "default_popup": "popup/popup.html"
   },
-  "host_permissions": [
-    "http://*/*",
-    "https://*/*"
-  ]
+"host_permissions": [
+  "*://*.lei-uminho.com/*"
+]
 }

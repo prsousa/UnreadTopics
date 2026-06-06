@@ -70,6 +70,21 @@
             $textarea.focus();
             const textLength = pendingQuote.length;
             textareaEl.setSelectionRange(textLength, textLength);
+
+            // Submete automaticamente se a flag de Quick Quote estiver ativa
+            const autoSubmit = sessionStorage.getItem("pending_quote_auto_submit");
+            if (autoSubmit === "true") {
+                sessionStorage.removeItem("pending_quote_auto_submit");
+                let $form = $textarea.closest("form");
+                if ($form.length > 0) {
+                    let $submitBtn = $form.find("input[type='submit'][name='post'], input[type='submit']");
+                    if ($submitBtn.length > 0) {
+                        $submitBtn.click();
+                    } else {
+                        $form.submit();
+                    }
+                }
+            }
         }
     }
 
@@ -77,6 +92,11 @@
      * Trata o evento de mouseup para detetar se há texto selecionado.
      */
     function handleMouseUp(e) {
+        // Se o clique foi no próprio balão, não fazemos nada para evitar limpar as variáveis do range
+        if (currentBubble && currentBubble.contains(e.target)) {
+            return;
+        }
+
         // Aguarda um pequeno instante para que a seleção do browser seja concluída
         setTimeout(() => {
             const selection = window.getSelection();
@@ -94,13 +114,13 @@
 
             // Garante que a seleção ocorreu estritamente dentro do texto de um post (.post ou .inner)
             // ou dentro do Sumário de Tópicos no fundo da página de escrita (#topic_summary_area ou #topic_summary)
-            let $parentPost = $(anchorNode).closest(".post, .inner");
+            let $parentPost = $(selection.anchorNode).closest(".post, .inner");
             if ($parentPost.length === 0) {
                 // Caso não esteja em .post ou .inner, verifica se está na tabela do sumário de tópicos
-                const $inSummary = $(anchorNode).closest("#topic_summary_area, #topic_summary");
+                const $inSummary = $(selection.anchorNode).closest("#topic_summary_area, #topic_summary");
                 if ($inSummary.length > 0) {
                     // No sumário de tópicos, o texto da publicação fica dentro das linhas tr ou células td
-                    $parentPost = $(anchorNode).closest("tr");
+                    $parentPost = $(selection.anchorNode).closest("tr");
                 }
             }
 
@@ -445,7 +465,8 @@
      * Constrói o BBCode de uma citação simples com base nos detalhes fornecidos.
      */
     function buildQuoteBBCode(content, author, topicId, msgId, date, isInnermost) {
-        const innerContent = isInnermost ? `${content}\n` : content;
+        const trimmedContent = content.trim();
+        const innerContent = isInnermost ? `${trimmedContent}\n` : trimmedContent;
         if (author && topicId && msgId && date) {
             return `[quote author=${author} link=topic=${topicId}.msg${msgId}#msg${msgId} date=${date}]${innerContent}[/quote]\n`;
         } else if (author && topicId && msgId) {
@@ -474,7 +495,41 @@
         // Cria o elemento do balão
         const bubble = document.createElement("div");
         bubble.id = BUBBLE_ID;
-        bubble.innerText = "Citar";
+
+        // 1. Botão Quick Quote
+        const btnQuick = document.createElement("div");
+        btnQuick.className = "qq-btn";
+        btnQuick.id = "qq-btn-quick";
+        btnQuick.innerText = "Quick Quote";
+        btnQuick.addEventListener("click", function (e) {
+            e.stopPropagation();
+            insertQuote("quick");
+        });
+
+        // 2. Botão Quote (meio)
+        const btnQuote = document.createElement("div");
+        btnQuote.className = "qq-btn";
+        btnQuote.id = "qq-btn-quote";
+        btnQuote.innerText = "Quote";
+        btnQuote.addEventListener("click", function (e) {
+            e.stopPropagation();
+            insertQuote("quote");
+        });
+
+        // 3. Botão Copy
+        const btnCopy = document.createElement("div");
+        btnCopy.className = "qq-btn";
+        btnCopy.id = "qq-btn-copy";
+        btnCopy.innerText = "Copy";
+        btnCopy.addEventListener("click", function (e) {
+            e.stopPropagation();
+            insertQuote("copy");
+        });
+
+        // Adiciona os botões na horizontal
+        bubble.appendChild(btnQuick);
+        bubble.appendChild(btnQuote);
+        bubble.appendChild(btnCopy);
 
         // Adiciona o elemento ao corpo da página
         document.body.appendChild(bubble);
@@ -490,12 +545,6 @@
 
         bubble.style.left = `${left}px`;
         bubble.style.top = `${top}px`;
-
-        // Associa o clique do botão à função de citação
-        bubble.addEventListener("click", function (e) {
-            e.stopPropagation();
-            insertQuote();
-        });
     }
 
     /**
@@ -510,17 +559,115 @@
 
     /**
      * Formata o texto selecionado e insere-o no editor do fórum.
-     * Caso a caixa de texto não esteja visível/presente, redireciona o utilizador
-     * para a página de resposta completa com a citação em memória.
      */
-    function insertQuote() {
+    function insertQuote(mode) {
         if (!selectedText || !currentRange || !currentParentPost) return;
 
         // Extrai o ID do tópico a partir do URL atual
         const topicMatch = /topic=(\d+)/.exec(window.location.href);
         const topicId = topicMatch ? topicMatch[1] : null;
 
-        // 1. Anota todos os blockquotes no post original com seus dados para podermos ler após o clone
+        // 1. Deteta se a seleção está dentro ou adjacente a uma lista (UL/OL)
+        let listNode = null;
+        
+        // A. Verifica se o nó comum da seleção ou algum pai é um UL/OL ou LI
+        let $currList = $(currentRange.commonAncestorContainer);
+        while ($currList.length > 0 && !$currList.is(currentParentPost)) {
+            if ($currList.is("ul, ol")) {
+                listNode = $currList[0];
+                break;
+            }
+            if ($currList.is("li")) {
+                const parentList = $currList.closest("ul, ol");
+                if (parentList.length > 0) {
+                    listNode = parentList[0];
+                }
+                break;
+            }
+            $currList = $currList.parent();
+        }
+
+        // B. Se não encontrou, verifica a partir de startContainer da seleção ativa
+        if (!listNode && currentRange.startContainer) {
+            let curr = currentRange.startContainer.nodeType === Node.TEXT_NODE ? currentRange.startContainer.parentNode : currentRange.startContainer;
+            while (curr && !$(curr).is(currentParentPost)) {
+                if (curr.nodeName === "UL" || curr.nodeName === "OL") {
+                    listNode = curr;
+                    break;
+                }
+                if (curr.nodeName === "LI") {
+                    const parentList = $(curr).closest("ul, ol");
+                    if (parentList.length > 0) {
+                        listNode = parentList[0];
+                    }
+                    break;
+                }
+                
+                // Verifica se o irmão seguinte é uma lista ou contém uma lista
+                let next = curr.nextElementSibling;
+                if (next) {
+                    if (next.tagName === "UL" || next.tagName === "OL") {
+                        listNode = next;
+                        break;
+                    }
+                    const foundList = next.querySelector("ul, ol");
+                    if (foundList) {
+                        listNode = foundList;
+                        break;
+                    }
+                }
+                
+                // Tratamento específico de spoilers: se estiver no cabeçalho, procura a lista no corpo seguinte
+                if ($(curr).hasClass("sp-head")) {
+                    let nextBody = curr.nextElementSibling;
+                    if (nextBody && $(nextBody).hasClass("sp-body")) {
+                        const foundList = nextBody.querySelector("ul, ol");
+                        if (foundList) {
+                            listNode = foundList;
+                            break;
+                        }
+                    }
+                }
+                curr = curr.parentNode;
+            }
+        }
+
+        let styleAttr = listNode ? (listNode.getAttribute("style") || "") : "";
+        let isDecimal = listNode && (listNode.tagName === "OL" || styleAttr.includes("list-style-type: decimal") || styleAttr.includes("list-style-type:decimal"));
+        let $spoiler = listNode ? $(listNode).closest(".sp-wrap") : [];
+        let hasSpoiler = $spoiler.length > 0;
+
+        // Determine if we should expand the selection to the entire list/spoiler
+        let shouldExpandEntirely = false;
+        let expandTarget = null;
+
+        let $quoteHeader = $(currentRange.commonAncestorContainer).closest(".quoteheader");
+        if ($quoteHeader.length === 0 && currentRange.startContainer) {
+            $quoteHeader = $(currentRange.startContainer).closest(".quoteheader");
+        }
+
+        if ($quoteHeader.length > 0) {
+            let nextEl = $quoteHeader[0].nextElementSibling;
+            while (nextEl && nextEl.tagName !== "BLOCKQUOTE") {
+                nextEl = nextEl.nextElementSibling;
+            }
+            if (nextEl && nextEl.tagName === "BLOCKQUOTE") {
+                shouldExpandEntirely = true;
+                expandTarget = nextEl;
+            }
+        } else if (hasSpoiler) {
+            if ($(currentRange.commonAncestorContainer).closest(".sp-wrap").is($spoiler)) {
+                shouldExpandEntirely = true;
+                expandTarget = $spoiler[0];
+            }
+        } else if (listNode && isDecimal) {
+            if ($(currentRange.commonAncestorContainer).closest(listNode).length > 0) {
+                shouldExpandEntirely = true;
+                expandTarget = listNode;
+            }
+        }
+
+        // 1. Anota os blockquotes no post original com seus dados para podermos ler após o clone
         currentParentPost.find("blockquote").each(function () {
             const details = extractQuoteHeaderDetails(this);
             this.setAttribute("data-quote-author", details.author || "");
@@ -529,8 +676,32 @@
             this.setAttribute("data-quote-topicid", details.topicId || "");
         });
 
-        // 2. Clona o conteúdo do range e serializa para BBCode recursivamente
-        const fragment = currentRange.cloneContents();
+        // 2. Anota listas decimais e spoilers para forçar a serialização total
+        const decimalLists = [];
+        currentParentPost.find("ul, ol").each(function () {
+            let sAttr = this.getAttribute("style") || "";
+            let isDec = this.tagName === "OL" || sAttr.includes("list-style-type: decimal") || sAttr.includes("list-style-type:decimal");
+            if (isDec) {
+                this.setAttribute("data-decimal-list-index", decimalLists.length);
+                decimalLists.push(this);
+            }
+        });
+
+        const spoilers = [];
+        currentParentPost.find(".sp-wrap").each(function () {
+            this.setAttribute("data-spoiler-index", spoilers.length);
+            spoilers.push(this);
+        });
+
+        // 3. Clona o conteúdo correspondente
+        let fragment;
+        if (shouldExpandEntirely && expandTarget) {
+            const tempRange = document.createRange();
+            tempRange.selectNode(expandTarget);
+            fragment = tempRange.cloneContents();
+        } else {
+            fragment = currentRange.cloneContents();
+        }
         let hasWrappedQuote = false;
 
         function serializeToBBCode(node) {
@@ -541,7 +712,6 @@
             if (node.nodeType === Node.ELEMENT_NODE) {
                 const $el = $(node);
 
-                // Ignora cabeçalhos e rodapés de citação
                 if ($el.hasClass("quoteheader") || $el.hasClass("quotefooter") || 
                     $el.hasClass("topslice_quote") || $el.hasClass("botslice_quote")) {
                     return "";
@@ -549,6 +719,30 @@
 
                 if (node.tagName === "BR") {
                     return "\n";
+                }
+
+                let spoilerIdxAttr = node.getAttribute("data-spoiler-index");
+                if (spoilerIdxAttr !== null) {
+                    let idx = parseInt(spoilerIdxAttr);
+                    let origSpoiler = spoilers[idx];
+                    if (origSpoiler) {
+                        origSpoiler.removeAttribute("data-spoiler-index");
+                        let res = serializeSpoilerNode(origSpoiler);
+                        origSpoiler.setAttribute("data-spoiler-index", spoilerIdxAttr);
+                        return res;
+                    }
+                }
+
+                let decimalListIdxAttr = node.getAttribute("data-decimal-list-index");
+                if (decimalListIdxAttr !== null) {
+                    let idx = parseInt(decimalListIdxAttr);
+                    let origList = decimalLists[idx];
+                    if (origList) {
+                        origList.removeAttribute("data-decimal-list-index");
+                        let res = serializeListNode(origList);
+                        origList.setAttribute("data-decimal-list-index", decimalListIdxAttr);
+                        return res;
+                    }
                 }
 
                 if (node.tagName === "BLOCKQUOTE") {
@@ -564,6 +758,115 @@
                     });
 
                     return buildQuoteBBCode(innerText.trim(), author, bqTopicId, msgId, date, true);
+                }
+
+                if (node.tagName === "UL" || node.tagName === "OL") {
+                    return serializeListNode(node);
+                }
+
+                if (node.tagName === "LI") {
+                    let innerText = "";
+                    node.childNodes.forEach(child => {
+                        innerText += serializeToBBCode(child);
+                    });
+                    return `[li]${innerText.trim()}[/li]\n`;
+                }
+
+                if ($el.hasClass("sp-wrap")) {
+                    return serializeSpoilerNode(node);
+                }
+
+                if ($el.hasClass("sp-head")) {
+                    return "";
+                }
+
+                if (node.tagName === "DIV" || node.tagName === "P") {
+                    let alignAttr = node.getAttribute("align");
+                    let styleAttr = node.getAttribute("style") || "";
+                    let align = alignAttr;
+                    if (!align && styleAttr.includes("text-align")) {
+                        let match = /text-align:\s*(\w+)/.exec(styleAttr);
+                        if (match) align = match[1];
+                    }
+                    
+                    let innerText = "";
+                    node.childNodes.forEach(child => {
+                        innerText += serializeToBBCode(child);
+                    });
+                    
+                    if (align) {
+                        if (align.toLowerCase() === "center") {
+                            return `[center]${innerText.trim()}[/center]\n`;
+                        } else {
+                            return `[align=${align}]${innerText.trim()}[/align]\n`;
+                        }
+                    }
+                    // Se não tiver alinhamento, apenas processa os filhos
+                    return innerText;
+                }
+
+                if (node.tagName === "SPAN" || node.tagName === "FONT") {
+                    let styleAttr = node.getAttribute("style") || "";
+                    let colorAttr = node.getAttribute("color");
+                    let sizeAttr = node.getAttribute("size");
+                    
+                    let color = colorAttr;
+                    if (!color && styleAttr.includes("color")) {
+                        let match = /color:\s*([^;]+)/.exec(styleAttr);
+                        if (match) color = match[1].trim();
+                    }
+                    
+                    let size = sizeAttr;
+                    if (!size && styleAttr.includes("font-size")) {
+                        let match = /font-size:\s*([^;]+)/.exec(styleAttr);
+                        if (match) size = match[1].trim();
+                    }
+                    
+                    let innerText = "";
+                    node.childNodes.forEach(child => {
+                        innerText += serializeToBBCode(child);
+                    });
+                    
+                    let result = innerText;
+                    if (size) {
+                        result = `[size=${size}]${result}[/size]`;
+                    }
+                    if (color) {
+                        result = `[color=${color}]${result}[/color]`;
+                    }
+                    return result;
+                }
+
+                if (node.tagName === "B" || node.tagName === "STRONG") {
+                    let innerText = "";
+                    node.childNodes.forEach(child => {
+                        innerText += serializeToBBCode(child);
+                    });
+                    return `[b]${innerText}[/b]`;
+                }
+
+                if (node.tagName === "I" || node.tagName === "EM") {
+                    let innerText = "";
+                    node.childNodes.forEach(child => {
+                        innerText += serializeToBBCode(child);
+                    });
+                    return `[i]${innerText}[/i]`;
+                }
+
+                if (node.tagName === "U") {
+                    let innerText = "";
+                    node.childNodes.forEach(child => {
+                        innerText += serializeToBBCode(child);
+                    });
+                    return `[u]${innerText}[/u]`;
+                }
+
+                if (node.tagName === "S" || node.tagName === "STRIKE") {
+                    let innerText = "";
+                    node.childNodes.forEach(child => {
+                        innerText += serializeToBBCode(child);
+                    });
+                    return `[s]${innerText}[/s]`;
                 }
 
                 let result = "";
@@ -584,7 +887,127 @@
             return "";
         }
 
+        function serializeListNode(listEl) {
+            let typeAttr = listEl.getAttribute("type");
+            let sAttr = listEl.getAttribute("style") || "";
+            let isDec = listEl.tagName === "OL" || sAttr.includes("list-style-type: decimal") || sAttr.includes("list-style-type:decimal");
+            
+            let innerText = "";
+            listEl.childNodes.forEach(child => {
+                innerText += serializeToBBCode(child);
+            });
+            
+            if (isDec) {
+                return `[list type=decimal]\n${innerText.trim()}\n[/list]\n`;
+            } else if (typeAttr) {
+                return `[list type=${typeAttr}]\n${innerText.trim()}\n[/list]\n`;
+            } else {
+                return `[list]\n${innerText.trim()}\n[/list]\n`;
+            }
+        }
+
+        function serializeSpoilerNode(spoilerEl) {
+            const $el = $(spoilerEl);
+            const $head = $el.find(".sp-head").first();
+            const $body = $el.find(".sp-body").first();
+            const title = $head.length > 0 ? $head.text().trim() : "";
+            
+            let innerText = "";
+            if ($body.length > 0) {
+                $body[0].childNodes.forEach(child => {
+                    innerText += serializeToBBCode(child);
+                });
+            }
+            
+            if (title) {
+                return `[spoiler=${title}]\n${innerText.trim()}\n[/spoiler]\n`;
+            } else {
+                return `[spoiler]\n${innerText.trim()}\n[/spoiler]\n`;
+            }
+        }
+
         let serializedBBCode = serializeToBBCode(fragment);
+
+        // Se a seleção estava inteiramente dentro de elementos de estilo no DOM original, preserva-os
+        let insideBold = $(currentRange.commonAncestorContainer).closest("b, strong");
+        let insideItalic = $(currentRange.commonAncestorContainer).closest("i, em");
+        let insideUnderline = $(currentRange.commonAncestorContainer).closest("u");
+        let insideStrike = $(currentRange.commonAncestorContainer).closest("s, strike");
+
+        let align = null;
+        let size = null;
+        let color = null;
+
+        // Procura alinhamento nos pais no DOM original
+        let $alignParent = $(currentRange.commonAncestorContainer).closest("[align], div, p");
+        $alignParent.each(function () {
+            if (this === currentParentPost[0]) return; // Para no post wrapper
+            let alignAttr = this.getAttribute("align");
+            let styleAttr = this.getAttribute("style") || "";
+            if (alignAttr) {
+                align = alignAttr;
+                return false;
+            }
+            if (styleAttr.includes("text-align")) {
+                let match = /text-align:\s*(\w+)/.exec(styleAttr);
+                if (match) {
+                    align = match[1];
+                    return false;
+                }
+            }
+        });
+
+        // Procura cor e tamanho nos pais no DOM original
+        let $styleParent = $(currentRange.commonAncestorContainer).closest("[color], [size], span, font");
+        $styleParent.each(function () {
+            if (this === currentParentPost[0]) return;
+            let colorAttr = this.getAttribute("color");
+            let sizeAttr = this.getAttribute("size");
+            let styleAttr = this.getAttribute("style") || "";
+            
+            if (colorAttr && !color) color = colorAttr;
+            if (sizeAttr && !size) size = sizeAttr;
+            
+            if (styleAttr.includes("color") && !color) {
+                let match = /color:\s*([^;]+)/.exec(styleAttr);
+                if (match) color = match[1].trim();
+            }
+            if (styleAttr.includes("font-size") && !size) {
+                let match = /font-size:\s*([^;]+)/.exec(styleAttr);
+                if (match) size = match[1].trim();
+            }
+        });
+
+        if (insideBold.length > 0) {
+            serializedBBCode = `[b]${serializedBBCode}[/b]`;
+        }
+        if (insideItalic.length > 0) {
+            serializedBBCode = `[i]${serializedBBCode}[/i]`;
+        }
+        if (insideUnderline.length > 0) {
+            serializedBBCode = `[u]${serializedBBCode}[/u]`;
+        }
+        if (insideStrike.length > 0) {
+            serializedBBCode = `[s]${serializedBBCode}[/s]`;
+        }
+        if (size) {
+            serializedBBCode = `[size=${size}]${serializedBBCode}[/size]`;
+        }
+        if (color) {
+            serializedBBCode = `[color=${color}]${serializedBBCode}[/color]`;
+        }
+        if (align) {
+            if (align.toLowerCase() === "center") {
+                serializedBBCode = `[center]${serializedBBCode}[/center]`;
+            } else {
+                serializedBBCode = `[align=${align}]${serializedBBCode}[/align]`;
+            }
+        }
+
+        let insideLi = $(currentRange.commonAncestorContainer).closest("li");
+        if (listNode && !isDecimal && !hasSpoiler && !shouldExpandEntirely && insideLi.length > 0) {
+            serializedBBCode = `[list]\n[li]${serializedBBCode.trim()}[/li]\n[/list]\n`;
+        }
 
         // Limpa os atributos temporários do DOM original
         currentParentPost.find("blockquote").each(function () {
@@ -593,8 +1016,14 @@
             this.removeAttribute("data-quote-date");
             this.removeAttribute("data-quote-topicid");
         });
+        currentParentPost.find("ul, ol").each(function () {
+            this.removeAttribute("data-decimal-list-index");
+        });
+        currentParentPost.find(".sp-wrap").each(function () {
+            this.removeAttribute("data-spoiler-index");
+        });
 
-        // 3. Encontra todos os blockquotes que contêm toda a seleção no DOM original
+        // 4. Encontra todos os blockquotes que contêm toda a seleção no DOM original
         const commonBlockquotes = [];
         let $curr = $(currentRange.commonAncestorContainer);
         while ($curr.length > 0 && !$curr.is(currentParentPost)) {
@@ -604,7 +1033,7 @@
             $curr = $curr.parent();
         }
 
-        // 4. Embrulha o BBCode serializado nos blockquotes comuns (do mais interno para o mais externo)
+        // 5. Embrulha o BBCode serializado nos blockquotes comuns (do mais interno para o mais externo)
         let finalBBCode = serializedBBCode;
         for (let i = 0; i < commonBlockquotes.length; i++) {
             const bq = commonBlockquotes[i];
@@ -614,9 +1043,14 @@
             finalBBCode = buildQuoteBBCode(finalBBCode, bqDetails.author, bqTopicId, bqDetails.msgId, bqDetails.date, isBqInnermost);
         }
 
-        // 5. Embrulha no quote do post principal (mais externo)
-        const isPostInnermost = (!hasWrappedQuote && commonBlockquotes.length === 0);
-        let quoteBBCode = buildQuoteBBCode(finalBBCode, postAuthor, topicId, postMsgId, postDate, isPostInnermost);
+        // 6. Embrulha no quote do post principal (mais externo) se não for modo Copy
+        let quoteBBCode;
+        if (mode === "copy") {
+            quoteBBCode = finalBBCode;
+        } else {
+            const isPostInnermost = (!hasWrappedQuote && commonBlockquotes.length === 0);
+            quoteBBCode = buildQuoteBBCode(finalBBCode, postAuthor, topicId, postMsgId, postDate, isPostInnermost);
+        }
 
         // Procura a caixa de texto ativa no SMF 2.0.19
         const $textarea = $("textarea#message, .quickReplyContent > textarea");
@@ -642,12 +1076,29 @@
             // Limpa a seleção e o balão
             window.getSelection().removeAllRanges();
             removeBubble();
+
+            // Se for Quick Quote, submete automaticamente a resposta
+            if (mode === "quick") {
+                let $form = $textarea.closest("form");
+                if ($form.length > 0) {
+                    let $submitBtn = $form.find("input[type='submit'][name='post'], input[type='submit']");
+                    if ($submitBtn.length > 0) {
+                        $submitBtn.click();
+                    } else {
+                        $form.submit();
+                    }
+                }
+            }
         } 
         // Caso B: Não há caixa de escrita visível (ex: utilizador está apenas a ler o tópico normalmente)
         else {
             if (topicId) {
                 // Guarda a citação formatada na sessão local
                 sessionStorage.setItem("pending_quote", quoteBBCode);
+
+                if (mode === "quick") {
+                    sessionStorage.setItem("pending_quote_auto_submit", "true");
+                }
 
                 // Constrói o URL da página de resposta completa do SMF
                 const replyURL = `${window.location.origin}${window.location.pathname}?action=post;topic=${topicId}.0`;

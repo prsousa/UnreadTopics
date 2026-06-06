@@ -16,7 +16,7 @@ $(document).ready(function () {
     filter(searchedString, "#resultadoPesquisa");
     $("#searchAnchor").attr(
       "href",
-      "http://www.lei-uminho.com/forum/?action=search2&search=" + searchedString
+      "https://www.lei-uminho.com/forum/?action=search2&search=" + searchedString
     );
   });
 
@@ -57,7 +57,7 @@ function filter(value, container) {
 function htmlRowTopico(nomeTopico, idTopico) {
   return (
     '<li class="buttonRow">\
-                <a href="http://www.lei-uminho.com/forum/?topic=' +
+                <a href="https://www.lei-uminho.com/forum/?topic=' +
     idTopico +
     '.msg9999999#new" target="_blank" class="popupButton hover" title="' +
     nomeTopico +

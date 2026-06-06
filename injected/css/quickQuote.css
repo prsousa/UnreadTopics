@@ -11,21 +11,19 @@
     z-index: 10000;
     display: flex;
     align-items: center;
-    justify-content: center;
     background: rgba(144, 40, 40, 0.95); /* Cor vermelha característica da UMinho com transparência */
     color: #ffffff;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 600;
-    padding: 6px 14px;
+    padding: 0;
     border-radius: 20px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25), 0 1px 3px rgba(0, 0, 0, 0.1);
-    cursor: pointer;
     user-select: none;
     pointer-events: auto;
     
     /* Transições suaves e animação de entrada */
-    transition: background-color 0.2s ease, transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     animation: quickQuoteScaleIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
 
@@ -43,16 +41,36 @@
     width: 0;
 }
 
-/* Efeito Hover do botão */
-#quick-quote-bubble:hover {
+/* Estilos para os botões individuais */
+.qq-btn {
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.qq-btn:first-child {
+    border-top-left-radius: 20px;
+    border-bottom-left-radius: 20px;
+}
+
+.qq-btn:last-child {
+    border-top-right-radius: 20px;
+    border-bottom-right-radius: 20px;
+}
+
+/* Linha divisória entre os botões */
+.qq-btn:not(:last-child) {
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Efeito Hover dos botões */
+.qq-btn:hover {
     background-color: #aa2f2f;
-    transform: scale(1.05) translateY(-2px);
-    box-shadow: 0 6px 20px rgba(144, 40, 40, 0.3);
 }
 
 /* Efeito ao clicar (feedback tátil) */
-#quick-quote-bubble:active {
-    transform: scale(0.98) translateY(0);
+.qq-btn:active {
+    background-color: #7b1d1d;
 }
 
 /* Animação suave de entrada (zoom + subida ligeira) */

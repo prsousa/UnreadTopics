@@ -44,6 +44,7 @@ const initializationPromise = loadData().then(() => {
 
   updateBadge();
   updaterUnread();
+  updateContextMenuTitles();
 });
 
 // Badge update
@@ -278,7 +279,7 @@ chrome.runtime.onInstalled.addListener(details => {
     }
 
     else {
-      topics.prefs.forumURL = "http://www.lei-uminho.com/forum/";
+      topics.prefs.forumURL = "https://www.lei-uminho.com/forum/";
       topics.save().then(() => {
         notifs.notifyUpdate("Reload com sucesso.\nClica aqui para as opções", newVersion, true);
       });
@@ -294,13 +295,37 @@ chrome.runtime.onInstalled.addListener(() => {
     title: "Desligar Notificações",
     contexts: ["action"]
   });
+
+  chrome.contextMenus.create({
+    id: "toggle-layout",
+    type: "normal",
+    title: "Usar Layout Lado a Lado",
+    contexts: ["action"]
+  });
 });
+
+function updateContextMenuTitles() {
+  const isSplit = String(other.prefs.postReplySplitLayout) === "1";
+  chrome.contextMenus.update("toggle-layout", {
+    title: isSplit ? "Usar Layout Normal" : "Usar Layout Lado a Lado"
+  }, () => {
+    if (chrome.runtime.lastError) {
+      console.log("Context menu not ready yet.");
+    }
+  });
+}
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   initializationPromise.then(() => {
     if (info.menuItemId === "disable-notifications") {
       notifs.setEnabled(false);
       notifs.save();
+    } else if (info.menuItemId === "toggle-layout") {
+      const isSplit = String(other.prefs.postReplySplitLayout) === "1";
+      other.prefs.postReplySplitLayout = isSplit ? "0" : "1";
+      other.save().then(() => {
+        updateContextMenuTitles();
+      });
     }
   });
 });
