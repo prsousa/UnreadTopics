@@ -1,16 +1,18 @@
 "use strict";
 
 // Load external scripts
-importScripts(
-  '/libs/chrome-promise.js',
-  '/utils.js',
-  '/html-inspector.js',
-  '/topics.js',
-  '/notifications.js',
-  '/tabs.js',
-  '/general.js',
-  '/ementa.js'
-);
+if (typeof importScripts === 'function') {
+  importScripts(
+    '/libs/chrome-promise.js',
+    '/utils.js',
+    '/html-inspector.js',
+    '/topics.js',
+    '/notifications.js',
+    '/tabs.js',
+    '/general.js',
+    '/ementa.js'
+  );
+}
 
 const chromep = new ChromePromise();
 

@@ -53,20 +53,32 @@ NotificationsManager.prototype.setEnabled = function (enabled) {
 
 // Create the offscreen document if it doesn't already exist
 async function createOffscreen() {
-    if (await chrome.offscreen.hasDocument()) return;
-    await chrome.offscreen.createDocument({
-        url: 'offscreen.html',
-        reasons: ['AUDIO_PLAYBACK'],
-        justification: 'play notification sound'
-    });
+    if (typeof chrome !== 'undefined' && chrome.offscreen) {
+        if (await chrome.offscreen.hasDocument()) return;
+        await chrome.offscreen.createDocument({
+            url: 'offscreen.html',
+            reasons: ['AUDIO_PLAYBACK'],
+            justification: 'play notification sound'
+        });
+    }
 }
 
 NotificationsManager.prototype.playSound = async function () {
     const source = '/audio/all-eyes-on-me.ogg'; // Path to the audio file
     const volume = this.prefs.audioVolume;
 
-    await createOffscreen();
-    await chrome.runtime.sendMessage({ play: { source, volume } });
+    if (typeof chrome !== 'undefined' && chrome.offscreen) {
+        await createOffscreen();
+        await chrome.runtime.sendMessage({ play: { source, volume } });
+    } else {
+        try {
+            const audio = new Audio(source);
+            audio.volume = volume;
+            audio.play().catch(err => console.error("Error playing audio directly:", err));
+        } catch (err) {
+            console.error("Audio playback not supported in this context:", err);
+        }
+    }
 }
 
 NotificationsManager.prototype.clearTopicsNotifications = function () {
