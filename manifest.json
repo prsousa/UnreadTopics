@@ -55,8 +55,7 @@
       ],
       "css": [
         "injected/css/sidebar.css",
-        "injected/css/uploadImgur.css",
-        "injected/css/quickQuote.css"
+        "injected/css/uploadImgur.css"
       ],
       "js": [
         "libs/jquery-3.7.1.min.js",
@@ -64,7 +63,6 @@
         "injected/heic-handler.js",
         "ementa.js",
         "injected/sidebar.js",
-        "injected/quickQuote.js",
         "injected/uploadImgur.js"
       ]
     }
