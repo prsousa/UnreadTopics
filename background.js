@@ -304,6 +304,13 @@ chrome.runtime.onInstalled.addListener(() => {
     title: "Usar Layout Lado a Lado",
     contexts: ["action"]
   });
+
+  chrome.contextMenus.create({
+    id: "open-options",
+    type: "normal",
+    title: "Opções",
+    contexts: ["action"]
+  });
 });
 
 function updateContextMenuTitles() {
@@ -322,6 +329,8 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     if (info.menuItemId === "disable-notifications") {
       notifs.setEnabled(false);
       notifs.save();
+    } else if (info.menuItemId === "open-options") {
+      openConfigPage();
     } else if (info.menuItemId === "toggle-layout") {
       const isSplit = String(other.prefs.postReplySplitLayout) === "1";
       other.prefs.postReplySplitLayout = isSplit ? "0" : "1";
