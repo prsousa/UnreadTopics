@@ -159,14 +159,9 @@ hr {
 }
 
 #ementaCont > span {
-    text-overflow: ellipsis;
-    /* white-space: nowrap; */
     width: 165px;
-    height: 75px;
-    display: -webkit-box;
-    -webkit-line-clamp: 5;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+    display: inline-block;
+    word-wrap: break-word;
 }
 
 .hover:hover {
@@ -214,6 +209,10 @@ hr {
     width: 20px;
     line-height: 13px;
     text-align: center;
+}
+
+#ementa td {
+    vertical-align: top;
 }
 
 #controladoresEmenta .inactive path {
