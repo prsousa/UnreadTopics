@@ -25,16 +25,6 @@
     "256": "img/icon/icon_256.png",
     "512": "img/icon/icon.png"
   },
-  "web_accessible_resources": [
-    {
-      "resources": [
-        "img/updateNotification.png",
-        "img/unreadNotification.png",
-        "img/postpone.png"
-      ],
-      "matches": ["<all_urls>"]
-    }
-  ],
   "permissions": [
     "tabs",
     "notifications",
@@ -89,7 +79,9 @@
     "default_popup": "popup/popup.html"
   },
   "host_permissions": [
-    "*://*.lei-uminho.com/*"
+    "*://*.lei-uminho.com/*",
+    "https://api.imgur.com/*",
+    "https://www.googleapis.com/*"
   ],
   "browser_specific_settings": {
     "gecko": {
