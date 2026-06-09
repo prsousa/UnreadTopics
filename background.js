@@ -29,7 +29,7 @@ function loadData() {
   return Promise.all([topics.load(), notifs.load(), tabs.load(), other.load()]);
 }
 
-loadData().then(() => {
+const initializationPromise = loadData().then(() => {
   topics.setUnreadTopicsChangeListener(updateBadge);
   topics.setOnLoadingChangeListener(updateBadge);
   topics.setLoginStatusChangeListener(newStatus => {
@@ -44,6 +44,7 @@ loadData().then(() => {
 
   updateBadge();
   updaterUnread();
+  updateContextMenuTitles();
 });
 
 // Badge update
@@ -98,9 +99,11 @@ function updaterUnread() {
 
 // Handle alarm triggers
 chrome.alarms.onAlarm.addListener(alarm => {
-  if (alarm.name === "updaterUnread") {
-    updaterUnread();
-  }
+  initializationPromise.then(() => {
+    if (alarm.name === "updaterUnread") {
+      updaterUnread();
+    }
+  });
 });
 
 // Commands
@@ -128,148 +131,160 @@ function openConfigPage() {
 
 // Idle detection
 chrome.idle.onStateChanged.addListener(newIdleState => {
-  currentIdleState = newIdleState;
-  if (newIdleState === "locked") {
-    chrome.alarms.clear("updaterUnread");
-  } else if (newIdleState === "active") {
-    updaterUnread();
-  }
+  initializationPromise.then(() => {
+    currentIdleState = newIdleState;
+    if (newIdleState === "locked") {
+      chrome.alarms.clear("updaterUnread");
+    } else if (newIdleState === "active") {
+      updaterUnread();
+    }
+  });
 });
 
 // Runtime messaging
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   // console.log(request, sender);
-  for (let req in request) {
-    switch (req) {
-      case "set-html":
-        topics.seedFromHTML(request[req]);
-        topics.save();
-        break; // IN: htmlData
-      case "set-reading-last-page":
-        topics.setTopicRead(request[req]);
-        topics.save();
-        break; // IN: topicId
-      case "get-unread-topics":
-        sendResponse({
-          topics: topics.getLocalUnreadTopics(),
-          lastUpdate: topics.lastUpdate
-        });
-        break; // OUT: unread topics and last update date
-      case "get-embed-images":
-        sendResponse(other.prefs.displayImages);
-        break; // OUT: display image preference
-      case "open-unread-topics":
-        openUnreadTopics().then(topics => {
-          sendResponse({ success: true, unreadTopics: topics });
-        }).catch(err => {
-          sendResponse({ success: false, msg: err });
-        });
-        return true; // Keep the message channel open for async response
-      case "open-links":
-        tabs.openLinks(request[req]);
-        break; // IN: [link]
-      case "close-current-tab":
-        tabs.closeTab(sender.tab.id);
-        break;
-      case "search-topics":
-        sendResponse(topics.searchTopicsByName(request[req]));
-        break; // IN: string
-      case "get-notifications-state":
-        sendResponse(notifs.getCurrentState());
-        break;
-      case "postpone-notifications-period":
-        notifs.postponeHourPeriod();
-        notifs.save();
-        break;
-      case "set-notifications-enabled":
-        notifs.setEnabled(request[req]);
-        notifs.save();
-        break; // IN: notifications enabled
-      case "reload":
-        loadData();
-        break;
-      case "open-config-page":
-        openConfigPage();
-        break;
-      case "get-vegetariano":
-        sendResponse(other.prefs.vegetariano);
-        break; // OUT: vegetariano boolean
-      case "get-popup-sensibility":
-        sendResponse(other.prefs.popupSensibility);
-        break; // OUT: popupSensibility (ms)
-      case "fetch-unread-topics":
-        topics.fetchUnread().then(newTopics => {
-          createNextUpdate();
-          sendResponse({ success: true, newTopics });
+  initializationPromise.then(() => {
+    for (let req in request) {
+      switch (req) {
+        case "set-html":
+          topics.seedFromHTML(request[req]);
           topics.save();
-        }).catch(() => {
-          sendResponse({ success: false });
-        });
-        return true;
-      case "print-msg"://just for debugging
-        console.log(request[req]);
-        break; // IN: string
-      case "alreadyfetching":
-        sendResponse(topics.isLoading);
-        break; // OUT: boolean
-      default:
-        console.log("Unknown Message Received", request);
+          break; // IN: htmlData
+        case "set-reading-last-page":
+          topics.setTopicRead(request[req]);
+          topics.save();
+          break; // IN: topicId
+        case "get-unread-topics":
+          sendResponse({
+            topics: topics.getLocalUnreadTopics(),
+            lastUpdate: topics.lastUpdate
+          });
+          break; // OUT: unread topics and last update date
+        case "get-embed-images":
+          sendResponse(other.prefs.displayImages);
+          break; // OUT: display image preference
+        case "open-unread-topics":
+          openUnreadTopics().then(topics => {
+            sendResponse({ success: true, unreadTopics: topics });
+          }).catch(err => {
+            sendResponse({ success: false, msg: err });
+          });
+          break;
+        case "open-links":
+          tabs.openLinks(request[req]);
+          break; // IN: [link]
+        case "close-current-tab":
+          tabs.closeTab(sender.tab.id);
+          break;
+        case "search-topics":
+          sendResponse(topics.searchTopicsByName(request[req]));
+          break; // IN: string
+        case "get-notifications-state":
+          sendResponse(notifs.getCurrentState());
+          break;
+        case "postpone-notifications-period":
+          notifs.postponeHourPeriod();
+          notifs.save();
+          break;
+        case "set-notifications-enabled":
+          notifs.setEnabled(request[req]);
+          notifs.save();
+          break; // IN: notifications enabled
+        case "reload":
+          loadData();
+          break;
+        case "open-config-page":
+          openConfigPage();
+          break;
+        case "get-vegetariano":
+          sendResponse(other.prefs.vegetariano);
+          break; // OUT: vegetariano boolean
+        case "get-popup-sensibility":
+          sendResponse(other.prefs.popupSensibility);
+          break; // OUT: popupSensibility (ms)
+        case "fetch-unread-topics":
+          topics.fetchUnread().then(newTopics => {
+            createNextUpdate();
+            sendResponse({ success: true, newTopics });
+            topics.save();
+          }).catch(() => {
+            sendResponse({ success: false });
+          });
+          break;
+        case "print-msg"://just for debugging
+          console.log(request[req]);
+          break; // IN: string
+        case "alreadyfetching":
+          sendResponse(topics.isLoading);
+          break; // OUT: boolean
+        default:
+          console.log("Unknown Message Received", request);
+      }
     }
-  }
+  });
+  return true; // Keep the message channel open for async response
 });
 
 // Notifications
 chrome.notifications.onClicked.addListener(notificationId => {
-  if (notificationId === "unread")
-    openUnreadTopics();
-  else if (notificationId === "update")
-    openConfigPage();
+  initializationPromise.then(() => {
+    if (notificationId === "unread")
+      openUnreadTopics();
+    else if (notificationId === "update")
+      openConfigPage();
 
-  chrome.notifications.clear(notificationId);
+    chrome.notifications.clear(notificationId);
+  });
 });
 
 chrome.notifications.onButtonClicked.addListener((notificationId, buttonIndex) => {
-  if (notificationId === "unread" && buttonIndex === 0) {
-    notifs.postponeHourPeriod();
-    notifs.save();
-  }
+  initializationPromise.then(() => {
+    if (notificationId === "unread" && buttonIndex === 0) {
+      notifs.postponeHourPeriod();
+      notifs.save();
+    }
 
-  chrome.notifications.clear(notificationId);
+    chrome.notifications.clear(notificationId);
+  });
 });
 
 // Hotkeys
 chrome.commands.onCommand.addListener(command => {
-  switch (command) {
-    case "open-unread-topics-command":
-      openUnreadTopics().catch(err => {
-        console.log("Error opening unread topics:", err);
-        // chromep.runtime.sendMessage("open-unread-topics");
-      });
-      break;
-    case "open-forum-command":
-      tabs.openLinks([topics.prefs.forumURL]);
-      break;
-  }
+  initializationPromise.then(() => {
+    switch (command) {
+      case "open-unread-topics-command":
+        openUnreadTopics().catch(err => {
+          console.log("Error opening unread topics:", err);
+          // chromep.runtime.sendMessage("open-unread-topics");
+        });
+        break;
+      case "open-forum-command":
+        tabs.openLinks([topics.prefs.forumURL]);
+        break;
+    }
+  });
 });
 
 // Installation logic
 chrome.runtime.onInstalled.addListener(details => {
-  const newVersion = chrome.runtime.getManifest().version;
+  initializationPromise.then(() => {
+    const newVersion = chrome.runtime.getManifest().version;
 
-  if (details.previousVersion < newVersion) {
-    // Set update message to be displayed
-    const updateMessage = "Migration to Manifest V3, refactoring some functionalities";
+    if (details.previousVersion < newVersion) {
+      // Set update message to be displayed
+      const updateMessage = "Migration to Manifest V3, refactoring some functionalities";
 
-    notifs.notifyUpdate(updateMessage, newVersion, false);
-  }
+      notifs.notifyUpdate(updateMessage, newVersion, false);
+    }
 
-  else {
-    topics.prefs.forumURL = "http://www.lei-uminho.com/forum/";
-    Promise.all([topics.save()]).then(() => {
-      notifs.notifyUpdate("Reload com sucesso.\nClica aqui para as opções", newVersion, true);
-      loadData();
-    });
-  }
+    else {
+      topics.prefs.forumURL = "https://www.lei-uminho.com/forum/";
+      topics.save().then(() => {
+        notifs.notifyUpdate("Reload com sucesso.\nClica aqui para as opções", newVersion, true);
+      });
+    }
+  });
 });
 
 // Context menu setup
@@ -280,12 +295,38 @@ chrome.runtime.onInstalled.addListener(() => {
     title: "Desligar Notificações",
     contexts: ["action"]
   });
+
+  chrome.contextMenus.create({
+    id: "toggle-layout",
+    type: "normal",
+    title: "Usar Layout Lado a Lado",
+    contexts: ["action"]
+  });
 });
 
+function updateContextMenuTitles() {
+  const isSplit = String(other.prefs.postReplySplitLayout) === "1";
+  chrome.contextMenus.update("toggle-layout", {
+    title: isSplit ? "Usar Layout Normal" : "Usar Layout Lado a Lado"
+  }, () => {
+    if (chrome.runtime.lastError) {
+      console.log("Context menu not ready yet.");
+    }
+  });
+}
+
 chrome.contextMenus.onClicked.addListener((info, tab) => {
-  if (info.menuItemId === "disable-notifications") {
-    notifs.setEnabled(false);
-    notifs.save();
-  }
+  initializationPromise.then(() => {
+    if (info.menuItemId === "disable-notifications") {
+      notifs.setEnabled(false);
+      notifs.save();
+    } else if (info.menuItemId === "toggle-layout") {
+      const isSplit = String(other.prefs.postReplySplitLayout) === "1";
+      other.prefs.postReplySplitLayout = isSplit ? "0" : "1";
+      other.save().then(() => {
+        updateContextMenuTitles();
+      });
+    }
+  });
 });
 

@@ -10,7 +10,7 @@ var TopicsManager =
     this.isLoading = false;
 
     this.prefs = {
-      forumURL: "http://www.lei-uminho.com/forum/",
+      forumURL: "https://www.lei-uminho.com/forum/",
       unreadOption: "unread;all;start=0",
       excludedTopics: []
     };
@@ -171,11 +171,11 @@ TopicsManager.prototype.receiveValidPost = function(postDetails) {
 };
 
 TopicsManager.prototype.fetchUnread = function() {
-  if (this.isLoading) return Promise.reject("already-fetching");
+  if (this.activeFetchPromise) return this.activeFetchPromise;
   let _this = this;
   this.setLoading(true);
 
-  let fetchPromise = Utils.ajax({
+  this.activeFetchPromise = Utils.ajax({
     url: this.prefs.forumURL + "?action=" + this.prefs.unreadOption,
     timeout: 10 * 1000, // 10 second timeout
     dataType: "text"
@@ -215,15 +215,17 @@ TopicsManager.prototype.fetchUnread = function() {
     return newUnreadTopics;
   });
 
-  fetchPromise
+  this.activeFetchPromise
     .then(param => {
       _this.setLoading(false);
+      _this.activeFetchPromise = null;
     })
     .catch(param => {
       _this.setLoading(false);
+      _this.activeFetchPromise = null;
     });
 
-  return fetchPromise;
+  return this.activeFetchPromise;
 };
 
 TopicsManager.prototype.seedFromHTML = function(htmlData) {

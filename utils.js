@@ -111,6 +111,10 @@ Utils.doRetry = function(fn, consecutiveExecep = 0, baseDelay = 5) {
     return fn().catch(reason => {
         console.log("Error Updating", reason);
 
+        if (reason === "loggedout") {
+            return Promise.reject(reason);
+        }
+
         if (!navigator.onLine)
             baseDelay = 0.5;
         else if (reason.statusText === "timeout")

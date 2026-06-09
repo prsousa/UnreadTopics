@@ -16,13 +16,15 @@ $(document).ready(function () {
     filter(searchedString, "#resultadoPesquisa");
     $("#searchAnchor").attr(
       "href",
-      "http://www.lei-uminho.com/forum/?action=search2&search=" + searchedString
+      "https://www.lei-uminho.com/forum/?action=search2&search=" + searchedString
     );
   });
 
   $("#search").click(function () {
     pesquisaForum($("#filtro").val());
   });
+
+
 
   $(".popupContainer").mouseover(function () {
     $("#progress").stop();
@@ -59,7 +61,7 @@ function filter(value, container) {
 function htmlRowTopico(nomeTopico, idTopico) {
   return (
     '<li class="buttonRow">\
-                <a href="http://www.lei-uminho.com/forum/?topic=' +
+                <a href="https://www.lei-uminho.com/forum/?topic=' +
     idTopico +
     '.msg9999999#new" target="_blank" class="popupButton hover" title="' +
     nomeTopico +
@@ -208,41 +210,48 @@ function toggleNofiticationState() {
 
 var indexEmentaActual = 0;
 var ementas = [];
-var timerEmentas;
+var momentoActual = "almoço";
+
 function ementaSeguinte() {
-  if (indexEmentaActual < ementas.length - 1) {
+  if (momentoActual === "almoço") {
+    momentoActual = "jantar";
+    showEmenta();
+  } else if (indexEmentaActual < ementas.length - 1) {
     indexEmentaActual++;
+    momentoActual = "almoço";
     showEmenta();
   }
 }
 
 function ementaAnterior() {
-  if (indexEmentaActual > 0) {
+  if (momentoActual === "jantar") {
+    momentoActual = "almoço";
+    showEmenta();
+  } else if (indexEmentaActual > 0) {
     indexEmentaActual--;
+    momentoActual = "jantar";
     showEmenta();
   }
 }
 
 function showEmenta() {
-  clearTimeout(timerEmentas);
   var ementa = ementas[indexEmentaActual];
-  toggleEverySeconds(
-    5,
-    { ementa: ementa.ementaA, momento: "almoço" },
-    { ementa: ementa.ementaJ, momento: "jantar" }
-  );
+  var texto = momentoActual === "almoço" ? ementa.ementaA : ementa.ementaJ;
+
+  $("#ementaCont > span").html(texto).attr("title", texto);
+  $("#momentoCont").text(momentoActual);
   $("#dataCont").html(dataToRelativeString(ementa.data * 1).toLowerCase());
   ementaArrowStates();
 }
 
 function ementaArrowStates() {
-  if (indexEmentaActual >= ementas.length - 1) {
+  if (indexEmentaActual >= ementas.length - 1 && momentoActual === "jantar") {
     $("#ementa #controladoresEmenta #upEmenta").addClass("inactive");
   } else {
     $("#ementa #controladoresEmenta #upEmenta").removeClass("inactive");
   }
 
-  if (indexEmentaActual <= 0) {
+  if (indexEmentaActual <= 0 && momentoActual === "almoço") {
     $("#ementa #controladoresEmenta #downEmenta").addClass("inactive");
   } else {
     $("#ementa #controladoresEmenta #downEmenta").removeClass("inactive");
@@ -272,26 +281,21 @@ function showEmentas() {
       ementaArrowStates();
     } else {
       indexEmentaActual = 0;
+      momentoActual = "almoço";
 
       if (
         ementas[0].data == new Date().setHours(0, 0, 0, 0) &&
         new Date().getHours() > 20
       ) {
         // se passa das 20h tentar mostrar ementa seguinte
-        if (indexEmentaActual < ementas.length - 1) indexEmentaActual++;
+        if (indexEmentaActual < ementas.length - 1) {
+          indexEmentaActual++;
+          momentoActual = "almoço";
+        } else {
+          momentoActual = "jantar";
+        }
       }
       showEmenta();
     }
   });
-}
-
-function toggleEverySeconds(segs, a, b) {
-  $("#ementaCont > span").fadeOut(300, function () {
-    $(this).text(a.ementa);
-    $(this).attr("title", a.ementa);
-    $(this).fadeIn(200);
-  });
-
-  $("#momentoCont").text(a.momento);
-  timerEmentas = setTimeout(toggleEverySeconds, segs * 1000, segs, b, a);
 }

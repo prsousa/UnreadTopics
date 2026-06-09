@@ -23,9 +23,10 @@ At lunchtime, the canteen menu can also be consulted.
 ## Technologies & Libraries
 <!-- * Google/Firabase Cloud Messaging ([GCM](https://developers.google.com/cloud-messaging/chrome/client)) -->
 * Simple Machines Forum ([SMF](http://www.simplemachines.org/))
-* [jQuery 2.1.1](https://jquery.com/)
+* [jQuery 3.7.1](https://jquery.com/)
 * [ES6 Promises](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)
 * [chrome-promise](https://github.com/tfoxy/chrome-promise)
+* [heic2any](https://github.com/alexcorvi/heic2any)
 
 
 ## Author

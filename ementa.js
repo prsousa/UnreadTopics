@@ -89,24 +89,34 @@ function getEmentas(onComplete) {
       "@group.calendar.google.com/events" +
       opts;
     
-    $.get(pagEmenta, function(ementas) {
-      $.each(ementas.items, function(i, comer) {
-        date = new Date(comer.start.dateTime);
-        if (date.getHours() <= 16){
-          var ementa = comer.summary;
-          var dia = new Date(comer.start.dateTime).setHours(0, 0, 0, 0);
-          calendario[dia] = { almoco: ementa, jantar: "" };
-        } else {
-          var ementa = comer.summary;
-          var dia = new Date(comer.start.dateTime).setHours(0, 0, 0, 0);
-          if (calendario[dia]) {
-            calendario[dia].jantar = ementa;
-          }
+    $.ajax({
+      url: pagEmenta,
+      dataType: "json",
+      timeout: 8000,
+      success: function(ementas) {
+        if (ementas && ementas.items) {
+          $.each(ementas.items, function(i, comer) {
+            date = new Date(comer.start.dateTime);
+            if (date.getHours() <= 16){
+              var ementa = comer.summary;
+              var dia = new Date(comer.start.dateTime).setHours(0, 0, 0, 0);
+              calendario[dia] = { almoco: ementa, jantar: "" };
+            } else {
+              var ementa = comer.summary;
+              var dia = new Date(comer.start.dateTime).setHours(0, 0, 0, 0);
+              if (calendario[dia]) {
+                calendario[dia].jantar = ementa;
+              }
+            }
+          });
+          calendario["data"] = new Date().getTime();
+          localStorage["calendarioEmenta"] = JSON.stringify(calendario);
         }
-        calendario["data"] = new Date().getTime();
-        localStorage["calendarioEmenta"] = JSON.stringify(calendario);
         onComplete();
-      });
+      },
+      error: function() {
+        onComplete();
+      }
     });
   });
 }
