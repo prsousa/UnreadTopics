@@ -48,12 +48,12 @@ git clone https://github.com/prsousa/UnreadTopics
 ``` 
 Or download the ZIP of the repository and extract it to the desired folder.
 
-## Add extension to Chrome
+## Add extension to Firefox
 
-1. Open Chrome and go to [chrome://extensions/](chrome://extensions/) 
-2. Enable `Developer mode` (usually on the top right corner)
-3. Click on `Load unpacked` and select the folder created when the repository was cloned
-4. The extension should be added to Chrome and the icon should appear on the extensions menu. To have the icon always visible, click on the pin icon next to the extension.
+1. Open Firefox and go to [about:debugging#/runtime/this-firefox](about:debugging#/runtime/this-firefox) (don't press the hyperlink because it won't work, copy and paste it)
+2. Click on `Load Temporary Add-on`
+
+For now, you will need to do this everytime you open the browser, unless you use a different method such as submiting the extension as an ulisted add-on trough Mozilla Developer Hub or using a different version of the browser such as Firefox Developer Edition or Nightly for example where you can disable signature checking for add-ons.
 
 ## Configuration
 

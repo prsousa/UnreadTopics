@@ -41,13 +41,25 @@
     "storage",
     "idle",
     "contextMenus",
-    "alarms",
-    "offscreen"
+    "alarms"
   ],
   "background": {
-    "service_worker": "background.js"
+    "scripts": [
+      "libs/chrome-promise.js",
+      "utils.js",
+      "html-inspector.js",
+      "topics.js",
+      "notifications.js",
+      "tabs.js",
+      "general.js",
+      "ementa.js",
+      "background.js"
+    ]
   },
-  "options_page": "options/options.html",
+  "options_ui": {
+    "page": "options/options.html",
+    "open_in_tab": true
+  },
   "content_scripts": [
     {
       "matches": [
@@ -76,7 +88,13 @@
     "default_icon": "img/icon/icon.png",
     "default_popup": "popup/popup.html"
   },
-"host_permissions": [
-  "*://*.lei-uminho.com/*"
-]
+  "host_permissions": [
+    "*://*.lei-uminho.com/*"
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "unreadtopics@lei-uminho.com",
+      "strict_min_version": "121.0"
+    }
+  }
 }
