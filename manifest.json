@@ -26,7 +26,6 @@
     "512": "img/icon/icon.png"
   },
   "permissions": [
-    "tabs",
     "notifications",
     "storage",
     "idle",
