@@ -18,7 +18,17 @@ At lunchtime, the canteen menu can also be consulted.
 * Search for topics by name
 * Sync personal settings with Google Account
 * Display preview of images/GIFs/videos from their URLs
-* Sync/display canteen month menus
+* Sync/display weekly canteen menus (Gualtar & Azurém) with manual controls
+* Quick Quote & Copy floating tool with formatting support for lists and spoilers
+* Drag-and-drop / Paste images to upload directly to Imgur (with native HEIC conversion)
+* Split layout side-by-side preview when creating or editing posts
+
+## Compatibility
+
+The extension is fully compatible with Google Chrome and all other Chromium-based web browsers that support Chrome extensions, some examples:
+* Microsoft Edge
+* Brave
+* Opera & Opera GX
 
 ## Technologies & Libraries
 <!-- * Google/Firabase Cloud Messaging ([GCM](https://developers.google.com/cloud-messaging/chrome/client)) -->
@@ -37,8 +47,10 @@ Special thanks to the forum admins and to friends for advices and suggestions! :
 
 # Deployment
 
-This extension is not maintained anymore. Manifest is outdated so the extension is out of the Chrome Web Store.
-The extension can be manually installed by following the instructions below.
+The extension is officially available on the Chrome Web Store:
+ **[Get it on the Chrome Web Store](https://chromewebstore.google.com/detail/t%C3%B3picos-por-ler-em-separa/mgphhkamjojglmapfjeepdpcmlfddagf)**
+
+Alternatively, the extension can also be manually installed by following the instructions below.
 
 ## Download
 
